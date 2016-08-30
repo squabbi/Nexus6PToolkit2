@@ -3023,7 +3023,7 @@ namespace Nexus_6P_Toolkit_2
                             {
                                 flashOTAs("OTA");
                             }
-                            else
+                            else 
                             {
                                 await this.ShowMessageAsync("Canceled Flash", "You can flash the OTA again anytime by selecting the same OTA and pressing 'Flash OTA'.");
                             }
