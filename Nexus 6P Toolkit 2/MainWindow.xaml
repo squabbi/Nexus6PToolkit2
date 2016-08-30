@@ -125,6 +125,11 @@
         </RichTextBox>
         <ProgressBar x:Name="statusProgress" Margin="10,445,0,0" VerticalAlignment="Top" ValueChanged="statusProgress_ValueChanged" MouseDoubleClick="statusProgress_MouseDoubleClick" HorizontalAlignment="Left" Width="613"/>
         <TabControl x:Name="tabControl" Controls:TabControlHelper.IsUnderlined="True" HorizontalAlignment="Left" Height="387" Margin="10,53,0,0" VerticalAlignment="Top" Width="613">
+            <TabItem Header="Root">
+                <Grid>
+
+                </Grid>
+            </TabItem>
             <TabItem Header="Unlocking &amp; Rooting">
                 <Grid Background="#FFF7F7F7">
                     <Grid.ColumnDefinitions>
