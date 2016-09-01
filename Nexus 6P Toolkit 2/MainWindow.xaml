@@ -36,7 +36,7 @@
                 <MenuItem x:Name="xdaThread" Header="Open Toolkit Thread" Click="xdaThread_Click"/>
                 <MenuItem x:Name="openDataFolder" Header="Open Data Folder" Click="openDataFolder_Click"/>
                 <Separator/>
-                <MenuItem x:Name="installDrivers" Header="Install Nexus USB Driver" Click="installDrivers_Click">
+                <MenuItem x:Name="installDrivers" Header="Install Nexus USB Drivers" Click="installDrivers_Click">
                     <MenuItem.Icon>
                         <Image Source="Resources/software_installer-32.png"/>
                     </MenuItem.Icon>
@@ -48,6 +48,8 @@
                 </MenuItem>
                 <Separator/>
                 <MenuItem x:Name="saveLog" Header="Save Log (Output)" Click="saveLog_Click"></MenuItem>
+                <Separator/>
+                <MenuItem x:Name="showProxySettings" Header="Proxy Settings" Click="showProxySettings_Click"/>
                 <MenuItem x:Name="linkExit" Header="Exit" Click="linkExit_Click">
                     <MenuItem.Icon>
                         <Image Source="Resources/exit_sign-32.png"/>
@@ -127,7 +129,15 @@
         <TabControl x:Name="tabControl" Controls:TabControlHelper.IsUnderlined="True" HorizontalAlignment="Left" Height="387" Margin="10,53,0,0" VerticalAlignment="Top" Width="613">
             <TabItem Header="Root">
                 <Grid>
-
+                    <GroupBox x:Name="groupBox2_Copy" Header="2. Unlock the Bootloader" HorizontalAlignment="Left" Margin="273,128,0,0" VerticalAlignment="Top" Height="139" Width="294">
+                        <Grid>
+                            <Button  x:Name="unlockBootloader1" Content="Unlock the Bootloader" HorizontalAlignment="Left" Margin="10,62,0,0" VerticalAlignment="Top" Width="262" Click="unlockBootloader_Click" ToolTip="This will erase everything in the internal storage."/>
+                            <TextBlock TextWrapping="WrapWithOverflow" Margin="10,10,0,0" Height="45" VerticalAlignment="Top" HorizontalAlignment="Left" Width="262"><Hyperlink Click="howEnableOEMUnlock_Click"><Run Text="Click here to find out how to enable OEM Unlock in the Developer Options,"/></Hyperlink><Run Text=" once that's done you're ready to "/><Run Text="unlock the bootloader."/></TextBlock>
+                        </Grid>
+                    </GroupBox>
+                    <GroupBox x:Name="groupBox6" Header="1. Install/Configure USB Drivers" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Height="139" Width="247">
+                        <Grid Margin="0"/>
+                    </GroupBox>
                 </Grid>
             </TabItem>
             <TabItem Header="Unlocking &amp; Rooting">
@@ -251,7 +261,7 @@
                     <RadioButton x:Name="rbEzFactoryMode" Content="Basic Options" HorizontalAlignment="Left" Margin="20,14,0,0" VerticalAlignment="Top" Foreground="White" Background="White" FontWeight="Bold" IsChecked="True" Checked="rbEzFactoryMode_Checked"/>
                     <RadioButton x:Name="rbAdvFactoryMode" Content="Advanced Options" HorizontalAlignment="Left" Margin="356,14,0,0" VerticalAlignment="Top" Foreground="White" Background="White" FontWeight="Bold" Checked="rbAdvFactoryMode_Checked"/>
                     <TextBlock x:Name="textBlock2" HorizontalAlignment="Left" Margin="10,118,0,0" TextWrapping="Wrap" Text="You may need to boot into recovery (stock) and complete a factory reset, if your device ends up in a bootloop after flashing stock." VerticalAlignment="Top" Height="61" Width="332"/>
-                    <Button x:Name="howToFactoryResetStock" Style="{StaticResource MaterialDesignFlatButton}" Content="How do I open the recovery menu?" HorizontalAlignment="Left" Margin="110,147,0,0" VerticalAlignment="Top" Width="232" Click="howToFactoryResetStock_Click"/>
+                    <Button x:Name="howToFactoryResetStock" Style="{StaticResource MaterialDesignFlatButton}" Content="How do I open the recovery menu?" HorizontalAlignment="Left" Margin="74,147,0,0" VerticalAlignment="Top" Width="268" Click="howToFactoryResetStock_Click"/>
                 </Grid>
             </TabItem>
         </TabControl>

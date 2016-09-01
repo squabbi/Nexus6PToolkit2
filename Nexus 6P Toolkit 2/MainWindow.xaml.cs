@@ -26,6 +26,7 @@ using ICSharpCode.SharpZipLib.Zip;
 using System.Windows.Controls;
 using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
+using Squabbi.Toolkit.Nexus6P;
 
 namespace Nexus_6P_Toolkit_2
 {
@@ -2507,7 +2508,7 @@ namespace Nexus_6P_Toolkit_2
                     {
                         //Extract downloaded file
                         await Task.Run(() => FastZipUnpack("./Data/Downloads/google_usb_driver.zip", "./Data/Downloads/"));
-                        int result = await Task.Run(() => DriverPackagePreinstall("./Data/Downloads/usb_driver/android_winusb.inf", 0));
+                        int result = await Task.Run(() => DriverPackagePreinstall("./Data/Downloads/usb_driver/android_winusb.inf", 1));
                         if (result != 0 && result != 5)
                         {
                             MessageBox.Show("Driver installation failed.", "Install Failed!", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -3447,6 +3448,11 @@ namespace Nexus_6P_Toolkit_2
 
             await this.ShowMessageAsync("Showing stock recovery options", "Once you're in recovery and you see an Android lying down with it's chest open.\n\n" + 
                 "Hold the power button (for less than 10 seconds or your phone will reboot!) and press the volume up button once!", MessageDialogStyle.Affirmative, mySettings);
+        }
+
+        private void showProxySettings_Click(object sender, RoutedEventArgs e)
+        {
+            
         }
     }
 }
