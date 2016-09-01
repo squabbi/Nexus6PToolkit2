@@ -1,0 +1,17 @@
+﻿<Controls:MetroWindow x:Class="Squabbi.Toolkit.Nexus6P.ProxySettings"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+        xmlns:local="clr-namespace:Squabbi.Toolkit.Nexus6P"
+        mc:Ignorable="d"
+        Title="ProxySettings" Height="250.376" Width="401.504">
+    <Grid>
+        <Button x:Name="button" Content="Apply" HorizontalAlignment="Left" Margin="262,177,0,0" VerticalAlignment="Top" Width="122"/>
+        <CheckBox x:Name="checkBox" Content="Enable Proxy Settings" HorizontalAlignment="Left" Margin="10,151,0,0" VerticalAlignment="Top"/>
+        <PasswordBox x:Name="passwordBox" Controls:TextBoxHelper.Watermark="This is a textbox" HorizontalAlignment="Left" Margin="106,106,0,0" VerticalAlignment="Top" Width="169"/>
+        <TextBox x:Name="textBox" Controls:TextBoxHelper.Watermark="This is a textbox" HorizontalAlignment="Left" Height="23" Margin="106,78,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="169"/>
+
+    </Grid>
+</Controls:MetroWindow>
