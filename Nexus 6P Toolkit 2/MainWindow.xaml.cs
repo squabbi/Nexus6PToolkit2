@@ -785,7 +785,23 @@ namespace Nexus_6P_Toolkit_2
             if (!Directory.Exists(stockImage))
             {
                 cAppend("Extracting factory image...\n");
-                await Task.Run(() => extractTGZ(stockImage, "./Data/Downloads/Stock/.extracted/"));
+                if (!string.IsNullOrEmpty(stockExtension))
+                {
+                    if (stockExtension == "tgz")
+                    {
+                        await Task.Run(() => extractTGZ(stockImage, "./Data/Downloads/Stock/.extracted/"));
+                    }
+                    else if (stockExtension == "zip")
+                    {
+                        await Task.Run(() => FastZipUnpack(stockImage, "./Data/Downloads/Stock/.extracted/"));
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("This is unhandled! Tell me on XDA: 'stock extention not set'.\n\n" +
+                        "The toolkit will now close.");
+                    Application.Current.Shutdown();
+                }
             }
             else
             {
@@ -799,7 +815,23 @@ namespace Nexus_6P_Toolkit_2
                     if (resultExtract == MessageDialogResult.Affirmative)
                     {
                         cAppend("Extracting factory image...\n");
-                        await Task.Run(() => extractTGZ(stockImage, "./Data/Downloads/Stock/.extracted/"));
+                        if (!string.IsNullOrEmpty(stockExtension))
+                        {
+                            if (stockExtension == "tgz")
+                            {
+                                await Task.Run(() => extractTGZ(stockImage, "./Data/Downloads/Stock/.extracted/"));
+                            }
+                            else if (stockExtension == "zip")
+                            {
+                                await Task.Run(() => FastZipUnpack(stockImage, "./Data/Downloads/Stock/.extracted/"));
+                            }
+                        }
+                        else
+                        {
+                            MessageBox.Show("This is unhandled! Tell me on XDA: 'stock extention not set'.\n\n" +
+                                "The toolkit will now close.");
+                            Application.Current.Shutdown();
+                        }
                     }
                     else
                     {
@@ -2086,9 +2118,9 @@ namespace Nexus_6P_Toolkit_2
                 stockUniqueID = stockListStrLineElements[6];
                 supSHA = stockListStrLineElements[7];
                 isStockDev = stockListStrLineElements[8];
+                stockExtension = stockListStrLineElements[9];
 
-
-                pStockFileName = string.Format("{0}-{1}-{2}-{3}.tgz", codeDeviceName ,stockVersion, stockEdition, stockUniqueID);
+                pStockFileName = string.Format("{0}-{1}-{2}-{3}.{4}", codeDeviceName, stockVersion, stockEdition, stockUniqueID, stockExtension);
 
                 if (_stockClient != null && _stockClient.IsBusy == true)
                 {
