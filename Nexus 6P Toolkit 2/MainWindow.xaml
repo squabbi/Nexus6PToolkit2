@@ -243,7 +243,7 @@
                     <GroupBox x:Name="groupBox7" Header="Select and Flash" HorizontalAlignment="Left" Margin="10,184,0,0" VerticalAlignment="Top" Height="109" Width="332">
                         <Grid>
                             <ComboBox x:Name="stockBuildList" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="300" ToolTip="Select a stock image to restore."/>
-                            <Button x:Name="dlStock" Content="Flash Factory Image" HorizontalAlignment="Left" Margin="135,38,0,0" Width="175" Height="27" Click="dlStock_Click" ToolTip="This can be used to fully return to stock or upgrade to the latest factory image without losing root &amp; data." VerticalAlignment="Top"/>
+                            <Button x:Name="dlStock" Content="Flash Factory Image" HorizontalAlignment="Left" Margin="135,38,0,4" Width="175" Height="Auto" Click="dlStock_Click" ToolTip="This can be used to fully return to stock or upgrade to the latest factory image without losing root &amp; data."/>
                         </Grid>
                     </GroupBox>
                     <GroupBox x:Name="groupbox2" Header="" HorizontalAlignment="Left" Margin="347,10,0,0" VerticalAlignment="Top" Height="283" Width="250">

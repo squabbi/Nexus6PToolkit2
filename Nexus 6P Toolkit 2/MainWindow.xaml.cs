@@ -26,7 +26,7 @@ using ICSharpCode.SharpZipLib.Zip;
 using System.Windows.Controls;
 using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
-using Squabbi.Toolkit.Nexus6P;
+using HtmlAgilityPack;
 
 namespace Nexus_6P_Toolkit_2
 {
@@ -59,6 +59,7 @@ namespace Nexus_6P_Toolkit_2
         private string pStockMD5;
         private string pStockFileName;
         private string isStockDev;
+        private string stockExtension;
         //Factory image paths
         private string bootloaderPath;
         private string radioPath;
@@ -135,7 +136,7 @@ namespace Nexus_6P_Toolkit_2
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            
+
 
             System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
             FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
@@ -146,7 +147,7 @@ namespace Nexus_6P_Toolkit_2
             cAppend("Set version.");
 
             startupProcesses();
-            
+
             ////Check for updates
             if (!File.Exists("./debug"))
             {
@@ -161,7 +162,7 @@ namespace Nexus_6P_Toolkit_2
 
         public void startupProcesses()
         {
-            
+
             //Checks and Creates folders
             cAppend("Checking folder structure.");
             CheckFileSystem();
@@ -180,7 +181,7 @@ namespace Nexus_6P_Toolkit_2
             cAppend("Starting detection service.");
             DeviceDetectionService();
 
-        } 
+        }
 
         public void CheckandDeploy()
         {
@@ -208,48 +209,28 @@ namespace Nexus_6P_Toolkit_2
             }
         }
 
-        public static bool CheckForInternetConnection()
+        public async void downloadCachedFiles()
         {
             try
             {
-                using (var client = new WebClient())
+                using (WebClient client = new WebClient())
                 {
-                    using (var stream = client.OpenRead("http://microsoft.com/"))
+                    //Proxy for WebClient
+                    IWebProxy defaultProxy = WebRequest.DefaultWebProxy;
+                    if (defaultProxy != null)
                     {
-                        return true;
+                        defaultProxy.Credentials = CredentialCache.DefaultCredentials;
+                        client.Proxy = defaultProxy;
                     }
+                    client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/StockBuildList.ini", "./Data/.cached/StockBuildList.ini");
+                    client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/TWRPBuildList.ini", "./Data/.cached/TWRPBuildList.ini");
+                    client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/superSU/SuBuildList.ini", "./Data/.cached/SuBuildList.ini");
+                    client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/OTABuildList.ini", "./Data/.cached/OTABuildList.ini");
+                    client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/ModBootBuildList.ini", "./Data/.cached/ModBootBuildList.ini");
+                    client.Dispose();
                 }
             }
             catch
-            {
-                return false;
-            }
-        }
-
-        public async void downloadCachedFiles()
-        {
-            bool inetR = CheckForInternetConnection();
-            if (inetR == true)
-            {
-                try
-                {
-                    using (WebClient client = new WebClient())
-                    {
-                        client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/StockBuildList.ini", "./Data/.cached/StockBuildList.ini");
-                        client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/TWRPBuildList.ini", "./Data/.cached/TWRPBuildList.ini");
-                        client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/superSU/SuBuildList.ini", "./Data/.cached/SuBuildList.ini");
-                        client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/OTABuildList.ini", "./Data/.cached/OTABuildList.ini");
-                        client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/ModBootBuildList.ini", "./Data/.cached/ModBootBuildList.ini");
-                        client.Dispose();
-                    }
-                }
-                catch
-                {
-                    await this.ShowMessageAsync("No Network", (string.Join("An active internet connection was not found! You will only be able to flash your own images and zips untill you restart the toolkit with an internet connection.",
-                        "If the problem persists, check your firewall to allow the toolkit as an exeption. Cached files will be used instead and may be out of date.")));
-                }
-            }
-            else
             {
                 await this.ShowMessageAsync("No Network", (string.Join("An active internet connection was not found! You will only be able to flash your own images and zips untill you restart the toolkit with an internet connection.",
                     "If the problem persists, check your firewall to allow the toolkit as an exeption. Cached files will be used instead and may be out of date.")));
@@ -2106,6 +2087,7 @@ namespace Nexus_6P_Toolkit_2
                 supSHA = stockListStrLineElements[7];
                 isStockDev = stockListStrLineElements[8];
 
+
                 pStockFileName = string.Format("{0}-{1}-{2}-{3}.tgz", codeDeviceName ,stockVersion, stockEdition, stockUniqueID);
 
                 if (_stockClient != null && _stockClient.IsBusy == true)
@@ -2223,6 +2205,13 @@ namespace Nexus_6P_Toolkit_2
 
                         //Declare new webclient
                         _stockClient = new WebClient();
+                        //Ask for proxy
+                        IWebProxy defaultProxy = WebRequest.DefaultWebProxy;
+                        if (defaultProxy != null)
+                        {
+                            defaultProxy.Credentials = CredentialCache.DefaultCredentials;
+                            _stockClient.Proxy = defaultProxy;
+                        }
                         //Subscribe to download and completed event handlers
                         _stockClient.DownloadProgressChanged += new DownloadProgressChangedEventHandler(client_DownloadProgressChanged);
                         _stockClient.DownloadFileCompleted += new AsyncCompletedEventHandler(stockClient_DownloadFileCompleted);
@@ -2496,6 +2485,13 @@ namespace Nexus_6P_Toolkit_2
                     cAppend("You can cancel the download by double clicking the progress bar at any time!\n");
                     //Declare new webclient
                     _driverClient = new WebClient();
+                    //Proxy for webClient
+                    IWebProxy defaultProxy = WebRequest.DefaultWebProxy;
+                    if (defaultProxy != null)
+                    {
+                        defaultProxy.Credentials = CredentialCache.DefaultCredentials;
+                        _driverClient.Proxy = defaultProxy;
+                    }
                     //Subscribe to download and completed event handlers
                     _driverClient.DownloadProgressChanged += new DownloadProgressChangedEventHandler(client_DownloadProgressChanged);
                     _driverClient.DownloadFileCompleted += new AsyncCompletedEventHandler(driverClient_DownloadFileCompleted);
@@ -2938,6 +2934,13 @@ namespace Nexus_6P_Toolkit_2
                         cAppend("You can cancel the download by double clicking the progress bar at any time!\n");
                         //Declare new webclient
                         _otaClient = new WebClient();
+                        //Proxy settings for WebClient
+                        IWebProxy defaultProxy = WebRequest.DefaultWebProxy;
+                        if (defaultProxy != null)
+                        {
+                            defaultProxy.Credentials = CredentialCache.DefaultCredentials;
+                            _otaClient.Proxy = defaultProxy;
+                        }
                         //Subscribe to download and completed event handlers
                         _otaClient.DownloadProgressChanged += new DownloadProgressChangedEventHandler(client_DownloadProgressChanged);
                         _otaClient.DownloadFileCompleted += new AsyncCompletedEventHandler(otaClient_DownloadFileCompleted);
@@ -3276,6 +3279,13 @@ namespace Nexus_6P_Toolkit_2
                         cAppend("You can cancel the download by double clicking the progress bar at any time!\n");
                         //Declare new webclient
                         _modBootClient = new WebClient();
+                        //Proxy for WebClient
+                        IWebProxy defaultProxy = WebRequest.DefaultWebProxy;
+                        if (defaultProxy != null)
+                        {
+                            defaultProxy.Credentials = CredentialCache.DefaultCredentials;
+                            _modBootClient.Proxy = defaultProxy;
+                        }
                         //Subscribe to download and completed event handlers
                         _modBootClient.DownloadProgressChanged += new DownloadProgressChangedEventHandler(client_DownloadProgressChanged);
                         _modBootClient.DownloadFileCompleted += new AsyncCompletedEventHandler(modBootClient_DownloadFileCompleted);
@@ -3452,8 +3462,7 @@ namespace Nexus_6P_Toolkit_2
 
         private void showProxySettings_Click(object sender, RoutedEventArgs e)
         {
-            ProxySettings pXsettings = new ProxySettings();
-            
+                        
         }
     }
 }
