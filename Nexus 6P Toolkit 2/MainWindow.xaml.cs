@@ -59,7 +59,7 @@ namespace Nexus_6P_Toolkit_2
         private string pStockMD5;
         private string pStockFileName;
         private string isStockDev;
-        private string stockExtension;
+        //private string stockExtension;
         //Factory image paths
         private string bootloaderPath;
         private string radioPath;
@@ -239,7 +239,7 @@ namespace Nexus_6P_Toolkit_2
 
         public void getBuildLists()
         {
-            
+            //make it check a string instead
 
             //Stock Lists
             FileInfo fStock = new FileInfo("./Data/.cached/StockBuildList.ini");
@@ -785,23 +785,26 @@ namespace Nexus_6P_Toolkit_2
             if (!Directory.Exists(stockImage))
             {
                 cAppend("Extracting factory image...\n");
-                if (!string.IsNullOrEmpty(stockExtension))
-                {
-                    if (stockExtension == "tgz")
-                    {
-                        await Task.Run(() => extractTGZ(stockImage, "./Data/Downloads/Stock/.extracted/"));
-                    }
-                    else if (stockExtension == "zip")
-                    {
-                        await Task.Run(() => FastZipUnpack(stockImage, "./Data/Downloads/Stock/.extracted/"));
-                    }
-                }
-                else
-                {
-                    MessageBox.Show("This is unhandled! Tell me on XDA: 'stock extention not set'.\n\n" +
-                        "The toolkit will now close.");
-                    Application.Current.Shutdown();
-                }
+                //if (!string.IsNullOrEmpty(stockExtension))
+                //{
+                //    if (stockExtension == "tgz")
+                //    {
+                //        await Task.Run(() => extractTGZ(stockImage, "./Data/Downloads/Stock/.extracted/"));
+                //    }
+                //    else if (stockExtension == "zip")
+                //    {
+                //        await Task.Run(() => FastZipUnpack(stockImage, "./Data/Downloads/Stock/.extracted/"));
+                //    }
+                //}
+                //else
+                //{
+                //    MessageBox.Show("This is unhandled! Tell me on XDA: 'stock extention not set'.\n\n" +
+                //        "The toolkit will now close.");
+                //    Application.Current.Shutdown();
+                //}
+
+                //Start extraction
+                await Task.Run(() => FastZipUnpack(stockImage, "./Data/Downloads/Stock/.extracted/"));
             }
             else
             {
@@ -815,23 +818,27 @@ namespace Nexus_6P_Toolkit_2
                     if (resultExtract == MessageDialogResult.Affirmative)
                     {
                         cAppend("Extracting factory image...\n");
-                        if (!string.IsNullOrEmpty(stockExtension))
-                        {
-                            if (stockExtension == "tgz")
-                            {
-                                await Task.Run(() => extractTGZ(stockImage, "./Data/Downloads/Stock/.extracted/"));
-                            }
-                            else if (stockExtension == "zip")
-                            {
-                                await Task.Run(() => FastZipUnpack(stockImage, "./Data/Downloads/Stock/.extracted/"));
-                            }
-                        }
-                        else
-                        {
-                            MessageBox.Show("This is unhandled! Tell me on XDA: 'stock extention not set'.\n\n" +
-                                "The toolkit will now close.");
-                            Application.Current.Shutdown();
-                        }
+                        //if (!string.IsNullOrEmpty(stockExtension))
+                        //{
+                        //    if (stockExtension == "tgz")
+                        //    {
+                        //        await Task.Run(() => extractTGZ(stockImage, "./Data/Downloads/Stock/.extracted/"));
+                        //    }
+                        //    else if (stockExtension == "zip")
+                        //    {
+                        //        await Task.Run(() => FastZipUnpack(stockImage, "./Data/Downloads/Stock/.extracted/"));
+                        //    }
+                        //}
+                        //else
+                        //{
+                        //    MessageBox.Show("This is unhandled! Tell me on XDA: 'stock extention not set'.\n\n" +
+                        //        "The toolkit will now close.");
+                        //    Application.Current.Shutdown();
+                        //}
+
+                        //Start extraction
+                        await Task.Run(() => FastZipUnpack(stockImage, "./Data/Downloads/Stock/.extracted/"));
+                        
                     }
                     else
                     {
@@ -2118,9 +2125,9 @@ namespace Nexus_6P_Toolkit_2
                 stockUniqueID = stockListStrLineElements[6];
                 supSHA = stockListStrLineElements[7];
                 isStockDev = stockListStrLineElements[8];
-                stockExtension = stockListStrLineElements[9];
+                //stockExtension = stockListStrLineElements[9];
 
-                pStockFileName = string.Format("{0}-{1}-{2}-{3}.{4}", codeDeviceName, stockVersion, stockEdition, stockUniqueID, stockExtension);
+                pStockFileName = string.Format("{0}-{1}-{2}-{3}.zip", codeDeviceName, stockVersion, stockEdition, stockUniqueID/*, stockExtension*/);
 
                 if (_stockClient != null && _stockClient.IsBusy == true)
                 {
