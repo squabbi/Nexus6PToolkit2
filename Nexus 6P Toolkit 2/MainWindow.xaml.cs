@@ -218,11 +218,16 @@ namespace Nexus_6P_Toolkit_2
                         defaultProxy.Credentials = CredentialCache.DefaultCredentials;
                         client.Proxy = defaultProxy;
                     }
-                    client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/StockBuildList.ini", "./Data/.cached/StockBuildList.ini");
-                    client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/TWRPBuildList.ini", "./Data/.cached/TWRPBuildList.ini");
-                    client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/superSU/SuBuildList.ini", "./Data/.cached/SuBuildList.ini");
-                    client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/OTABuildList.ini", "./Data/.cached/OTABuildList.ini");
-                    client.DownloadFile("https://raw.githubusercontent.com/squabbi/Nexus6PToolkit2/master/ModBootBuildList.ini?token=ABzkxHL8Br4eeRA5491RgQ2YRrNkEqAmks5X3nlfwA%3D%3D"/*"https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/ModBootBuildList.ini"*/, "./Data/.cached/ModBootBuildList.ini");
+                    client.DownloadFile(/*"https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/StockBuildList.ini"*/
+                        , "./Data/.cached/StockBuildList.ini");
+                    client.DownloadFile(/*"https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/TWRPBuildList.ini"*/
+                        , "./Data/.cached/TWRPBuildList.ini");
+                    client.DownloadFile(/*"https://s.basketbuild.com/dl/devs?dl=squabbi/superSU/SuBuildList.ini"*/
+                        , "./Data/.cached/SuBuildList.ini");
+                    client.DownloadFile(/*"https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/OTABuildList.ini"*/
+                        , "./Data/.cached/OTABuildList.ini");
+                    client.DownloadFile("https://raw.githubusercontent.com/squabbi/Nexus6PToolkit2/master/ModBootBuildList.ini?token=ABzkxHL8Br4eeRA5491RgQ2YRrNkEqAmks5X3nlfwA%3D%3D"/*"https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/ModBootBuildList.ini"*/
+                        , "./Data/.cached/ModBootBuildList.ini");
                     client.Dispose();
                 }
             }
@@ -235,86 +240,119 @@ namespace Nexus_6P_Toolkit_2
 
         public void getBuildLists()
         {
-            //make it check a string instead
+            //Check for required string in the first line
+            string secStringCheckSBL = File.ReadLines("./Data/.cached/StockBuildList.ini").First(); // gets the first line from file.
+            if (secStringCheckSBL == "if0L4U9vTS") // check if first line matches
+            {
+                // success
+                IniFileName iniItems = new IniFileName("./Data/.cached/StockBuildList.ini");
+                string[] iniValues = iniItems.GetEntryNames(fullDeviceName);
 
-            //Stock Lists
-            FileInfo fStock = new FileInfo("./Data/.cached/StockBuildList.ini");
-            long fStockL = fStock.Length;
-            if (fStockL > 299)
+                //Foreach entry make a combobox item
+                foreach (string iniValue in iniValues)
+                {
+                    App.Current.Dispatcher.Invoke((Action)delegate
+                    {
+                        stockBuildList.Items.Add(iniValue);
+                    });
+                }
+
+                cAppend("INFO: Loaded StockBuildList");
+            }
+            else
             {
-                IniFileName iniStock = new IniFileName("./Data/.cached/StockBuildList.ini");
-                stockSelectionValues = iniStock.GetEntryNames(fullDeviceName);
+                // fail
+                cAppend("WARN: Security string not found for StockBuildList.");
             }
 
-            //TWRP Lists
-            FileInfo fTWRP = new FileInfo("./Data/.cached/TWRPBuildList.ini");
-            long fTWRPL = fTWRP.Length;
-            if (fTWRPL > 299)
+            string secStringCheckTBL = File.ReadLines("./Data/.cached/TWRPBuildList.ini").First(); // gets the first line from file.
+            if (secStringCheckTBL == "if0L4U9vTS") // check if first line matches
             {
-                IniFileName iniTWRP = new IniFileName("./Data/.cached/TWRPBuildList.ini");
-                twrpSelectionValues = iniTWRP.GetEntryNames(fullDeviceName);
+                // success
+                IniFileName iniItems = new IniFileName("./Data/.cached/TWRPBuildList.ini");
+                string[] iniValues = iniItems.GetEntryNames(fullDeviceName);
+                //Foreach entry make a combobox item
+                foreach (string iniValue in iniValues)
+                {
+                    App.Current.Dispatcher.Invoke((Action)delegate
+                    {
+                        twrpBuildList.Items.Add(iniValue);
+                    });
+                }
+                cAppend("INFO: Loaded TWRPBuildList");
+            }
+            else
+            {
+                // fail
+                cAppend("WARN: Security string not found for TWRPBuildList.");
             }
 
-            FileInfo fSU = new FileInfo("./Data/.cached/SuBuildList.ini");
-            long fSUL = fSU.Length;
-            if (fSUL > 299)
+            string secStringCheckSuBL = File.ReadLines("./Data/.cached/SuBuildList.ini").First(); // gets the first line from file.
+            if (secStringCheckSuBL == "if0L4U9vTS") // check if first line matches
             {
-                //SuperSU Lists
-                IniFileName iniSU = new IniFileName("./Data/.cached/SuBuildList.ini");
-                string[] suSecValue = iniSU.GetSectionNames();
-                suSelectionValues = iniSU.GetEntryNames(suSecValue[0]);
-            }
-            //OTA Lists
-            FileInfo fOTA = new FileInfo("./Data/.cached/OTABuildLIst.ini");
-            long fOTAL = fOTA.Length;
-            if (fOTAL > 299)
-            {
-                IniFileName iniOTA = new IniFileName("./Data/.cached/OTABuildLIst.ini");
-                otaSelectionValues = iniOTA.GetEntryNames(fullDeviceName);
-            }
-            //Modified Boot Lists
-            FileInfo fModBoot = new FileInfo("./Data/.cached/ModBootBuildList.ini");
-            long fModBootL = fModBoot.Length;
-            if (fModBootL > 299)
-            {
-                IniFileName iniModBoot = new IniFileName("./Data/.cached/ModBootBuildList.ini");
-                modBootSelectionValues = iniModBoot.GetEntryNames(fullDeviceName);
-            }
-            //Foreach entry make a combobox item
-            foreach (string stockSecVal in stockSelectionValues)
-            {
-                App.Current.Dispatcher.Invoke((Action)delegate
+                // success
+                IniFileName iniItems = new IniFileName("./Data/.cached/SuBuildList.ini");
+                string[] iniSecValue = iniItems.GetSectionNames();
+                string[] iniValues = iniItems.GetEntryNames(iniSecValue[0]);
+
+                //Foreach entry make a combobox item
+                foreach (string iniValue in iniValues)
                 {
-                    stockBuildList.Items.Add(stockSecVal);
-                });
+                    App.Current.Dispatcher.Invoke((Action)delegate
+                    {
+                        supersuBuildList.Items.Add(iniValue);
+                    });
+                }
+                cAppend("INFO: Loaded SuBuildList");
             }
-            foreach (string twrpSecVal in twrpSelectionValues)
+            else
             {
-                App.Current.Dispatcher.Invoke((Action)delegate
-                {
-                    twrpBuildList.Items.Add(twrpSecVal);
-                });
+                // fail
+                cAppend("WARN: Security string not found for SuBuildList.");
             }
-            foreach (string suSecVal in suSelectionValues)
+
+            string secStringCheckOBL = File.ReadLines("./Data/.cached/OTABuildList.ini").First(); // gets the first line from file.
+            if (secStringCheckOBL == "if0L4U9vTS") // check if first line matches
             {
-                App.Current.Dispatcher.Invoke((Action)delegate
+                // success
+                IniFileName iniItems = new IniFileName("./Data/.cached/OTABuildList.ini");
+                string[] iniValues = iniItems.GetEntryNames(fullDeviceName);
+                //Foreach entry make a combobox item
+                foreach (string iniValue in iniValues)
                 {
-                    supersuBuildList.Items.Add(suSecVal);
-                });
+                    App.Current.Dispatcher.Invoke((Action)delegate
+                    {
+                        otaBuildList.Items.Add(iniValue);
+                    });
+                }
+                cAppend("INFO: Loaded OTABuildList");
             }
-            foreach (string otaSecVal in otaSelectionValues)
+            else
             {
-                App.Current.Dispatcher.Invoke((Action)delegate
-                {
-                    otaBuildList.Items.Add(otaSecVal);
-                });
+                // fail
+                cAppend("WARN: Security string not found for OTABuildList.");
             }
-            foreach (string modBootSecVal in modBootSelectionValues)
+
+            string secStringCheckMBL = File.ReadLines("./Data/.cached/ModBootBuildList.ini").First(); // gets the first line from file.
+            if (secStringCheckMBL == "if0L4U9vTS") // check if first line matches specified languages
             {
-                App.Current.Dispatcher.Invoke((Action)delegate
+                // success
+                IniFileName iniItems = new IniFileName("./Data/.cached/ModBootBuildList.ini");
+                string[] iniValues = iniItems.GetEntryNames(fullDeviceName);
+                //Foreach entry make a combobox item
+                foreach (string iniValue in iniValues)
                 {
-                    modBootBuildList.Items.Add(modBootSecVal);
-                });
+                    App.Current.Dispatcher.Invoke((Action)delegate
+                    {
+                        modBootBuildList.Items.Add(iniValue);
+                    });
+                }
+                cAppend("INFO: Loaded ModBootBuildList");
+            }
+            else
+            {
+                // fail
+                cAppend("WARN: Security string not found for ModBootBuildList.");
             }
         }
 
@@ -3222,7 +3260,7 @@ namespace Nexus_6P_Toolkit_2
             {
                 cAppend("No modified boot image selected...");
                 await this.ShowMessageAsync("No modified boot image selected", "Please select a modified boot image and try again.", MessageDialogStyle.Affirmative, noImageSettings);
-                twrpBuildList.IsDropDownOpen = true;
+                modBootBuildList.IsDropDownOpen = true;
             }
             if (modBootBuildList.SelectedIndex == 0)
             {
