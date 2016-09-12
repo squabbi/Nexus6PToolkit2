@@ -12,19 +12,14 @@ using aUpdater;
 using INI;
 using AndroidCtrl;
 using AndroidCtrl.ADB;
-using AndroidCtrl.AAPT;
 using AndroidCtrl.Tools;
-using AndroidCtrl.Signer;
 using AndroidCtrl.Fastboot;
 using System.Runtime.InteropServices;
 using System.ComponentModel;
 using System.Windows.Media;
 using System.Security.Cryptography;
-using ICSharpCode.SharpZipLib.GZip;
-using ICSharpCode.SharpZipLib.Tar;
 using ICSharpCode.SharpZipLib.Zip;
 using System.Windows.Controls;
-using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
 
 namespace Nexus_6P_Toolkit_2
@@ -2454,19 +2449,6 @@ namespace Nexus_6P_Toolkit_2
                 }
                 dlStock.IsEnabled = true;
             }
-        }
-
-        private void extractTGZ(string stockFile, string extractDir)
-        {
-            Stream inStream = File.OpenRead(stockFile);
-            Stream gzipStream = new GZipInputStream(inStream);
-
-            TarArchive tarArchive = TarArchive.CreateInputTarArchive(gzipStream);
-            tarArchive.ExtractContents(extractDir);
-            tarArchive.Close();
-
-            gzipStream.Close();
-            inStream.Close();
         }
 
         public void FastZipUnpack(string zipFileName, string targetDir)
