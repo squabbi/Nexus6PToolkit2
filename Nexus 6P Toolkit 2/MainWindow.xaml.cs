@@ -26,7 +26,7 @@ using ICSharpCode.SharpZipLib.Zip;
 using System.Windows.Controls;
 using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
-using HtmlAgilityPack;
+using Octokit;
 
 namespace Nexus_6P_Toolkit_2
 {
@@ -43,6 +43,9 @@ namespace Nexus_6P_Toolkit_2
                     "There seems to be another instance of the toolkit running. Please make sure it is not running in the background.",
                     "Another Instance is running", MessageBoxButton.OK, MessageBoxImage.Error);
                 Close();
+
+                
+                
             }
 
             InitializeComponent();
@@ -56,7 +59,7 @@ namespace Nexus_6P_Toolkit_2
         private string stockVersion;
         private string stockEdition;
         private string stockUniqueID;
-        private string pStockMD5;
+        //private string pStockMD5;
         private string pStockFileName;
         private string isStockDev;
         //private string stockExtension;
@@ -80,6 +83,7 @@ namespace Nexus_6P_Toolkit_2
         private bool flashRecovery;
         private bool flashSystem;
         private bool flashVendor;
+        private bool flashFormatUserdata;
         //TWRP options
         private string twrpVersion;
         private string pTWRPMD5;
@@ -226,7 +230,7 @@ namespace Nexus_6P_Toolkit_2
                     client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/TWRPBuildList.ini", "./Data/.cached/TWRPBuildList.ini");
                     client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/superSU/SuBuildList.ini", "./Data/.cached/SuBuildList.ini");
                     client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/OTABuildList.ini", "./Data/.cached/OTABuildList.ini");
-                    client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/ModBootBuildList.ini", "./Data/.cached/ModBootBuildList.ini");
+                    client.DownloadFile("https://raw.githubusercontent.com/squabbi/Nexus6PToolkit2/master/ModBootBuildList.ini?token=ABzkxHL8Br4eeRA5491RgQ2YRrNkEqAmks5X3nlfwA%3D%3D"/*"https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/ModBootBuildList.ini"*/, "./Data/.cached/ModBootBuildList.ini");
                     client.Dispose();
                 }
             }
@@ -849,210 +853,239 @@ namespace Nexus_6P_Toolkit_2
 
             string rStockFolder = Path.Combine("./Data/Downloads/Stock/.extracted/", string.Format("{0}-{1}", codeDeviceName, stockVersion));
 
-            controllerFactoryflash.SetTitle("Flashing bootloader...");
-            controllerFactoryflash.SetMessage("Progress 1/8");
-
-            string[] fBootloader = System.IO.Directory.GetFiles(rStockFolder, "*bootloader*", System.IO.SearchOption.TopDirectoryOnly);
-            if (fBootloader.Length > 0)
+            if (factoryEzMode == true)
             {
-                cAppend("Flashing bootloader...");
-                bootloaderPath = fBootloader[0].ToString();
-                await Task.Run(() => Fastboot.Instance().Flash(IDDevicePartition.BOOTLOADER, bootloaderPath));
+                controllerFactoryflash.SetTitle("Flashing bootloader...");
+                controllerFactoryflash.SetMessage("Progress 1/3");
+            }
+            else
+            {
+                controllerFactoryflash.SetTitle("Flashing bootloader...");
+                controllerFactoryflash.SetMessage("Progress 1/8");
             }
 
-            controllerFactoryflash.SetIndeterminate();
-            controllerFactoryflash.SetTitle("Rebooting to bootloader...");
-
-            await Task.Run(() => Fastboot.Instance().Reboot(IDBoot.BOOTLOADER));
-
-            controllerFactoryflash.SetTitle("Flashing radio...");
-            controllerFactoryflash.SetMessage("Progress 2/8");
-
-            string[] fRadio = System.IO.Directory.GetFiles(rStockFolder, "*radio*", System.IO.SearchOption.TopDirectoryOnly);
-            if (fRadio.Length > 0)
+            if (flashBootloader == true)
             {
-                cAppend("Flashing radio...");
-                radioPath = fRadio[0].ToString();
-                await Task.Run(() => Fastboot.Instance().Flash(IDDevicePartition.RADIO, radioPath));
-            }
-
-            controllerFactoryflash.SetIndeterminate();
-            controllerFactoryflash.SetTitle("Rebooting to bootloader...");
-
-            await Task.Run(() => Fastboot.Instance().Reboot(IDBoot.BOOTLOADER));
-
-            controllerFactoryflash.SetTitle("Extracting images...");
-            controllerFactoryflash.SetMessage("Progress 2.5/8");
-
-            string[] fImage = System.IO.Directory.GetFiles(rStockFolder, "*image*", System.IO.SearchOption.TopDirectoryOnly);
-            if (fImage.Length > 0)
-            {
-                cAppend("Extracting images...");
-                imagePath = fImage[0].ToString();
-                await Task.Run(() => FastZipUnpack(imagePath, rStockFolder));
-            }
-
-            if (flashBoot == true)
-            {
-                controllerFactoryflash.SetTitle("Flashing boot...");
-                controllerFactoryflash.SetMessage("Progress 3/8");
-
-                cAppend("Flashing boot...");
-                string[] fBoot = System.IO.Directory.GetFiles(rStockFolder, "*boot*", System.IO.SearchOption.TopDirectoryOnly);
-                if (fBoot.Length > 0)
+                string[] fBootloader = System.IO.Directory.GetFiles(rStockFolder, "*bootloader*", System.IO.SearchOption.TopDirectoryOnly);
+                if (fBootloader.Length > 0)
                 {
-                    bootPath = fBoot[0].ToString();
-                    await Task.Run(() => Fastboot.Instance().Flash(IDDevicePartition.BOOT, bootPath));
+                    cAppend("Flashing bootloader...");
+                    bootloaderPath = fBootloader[0].ToString();
+                    await Task.Run(() => Fastboot.Instance().Flash(IDDevicePartition.BOOTLOADER, bootloaderPath));
+
+                    controllerFactoryflash.SetIndeterminate();
+                    controllerFactoryflash.SetTitle("Rebooting to bootloader...");
+
+                    await Task.Run(() => Fastboot.Instance().Reboot(IDBoot.BOOTLOADER));
                 }
             }
             else
             {
-                controllerFactoryflash.SetTitle("Skipping boot...");
-                controllerFactoryflash.SetMessage("Progress 3/8");
-                cAppend("Skipping boot image...");
-            }
+                cAppend("Skipping bootloader...");
+            }         
 
-            controllerFactoryflash.SetTitle("Flashing cache...");
-            controllerFactoryflash.SetMessage("Progress 4/8");
-
-            if (flashCache == true)
+            if (flashRadio == true)
             {
-                string[] fCache = Directory.GetFiles(rStockFolder, "*cache*", SearchOption.TopDirectoryOnly);
-                if (fCache.Length > 0)
+                string[] fRadio = System.IO.Directory.GetFiles(rStockFolder, "*radio*", System.IO.SearchOption.TopDirectoryOnly);
+                if (fRadio.Length > 0)
                 {
-                    cAppend("Flashing cache...");
-                    cachePath = fCache[0].ToString();
-                    await Task.Run(() => Fastboot.Instance().Flash(IDDevicePartition.CACHE, cachePath));
+                    if (factoryEzMode == true)
+                    {
+                        controllerFactoryflash.SetTitle("Flashing radio...");
+                        controllerFactoryflash.SetMessage("Progress 2/3");
+                    }
+                    else
+                    {
+                        controllerFactoryflash.SetTitle("Flashing radio...");
+                        controllerFactoryflash.SetMessage("Progress 2/8");
+                    }
+                   
+                    radioPath = fRadio[0].ToString();
+                    await Task.Run(() => Fastboot.Instance().Flash(IDDevicePartition.RADIO, radioPath));
+
+                    controllerFactoryflash.SetIndeterminate();
+                    controllerFactoryflash.SetTitle("Rebooting to bootloader...");
+
+                    await Task.Run(() => Fastboot.Instance().Reboot(IDBoot.BOOTLOADER));
                 }
             }
             else
             {
-                controllerFactoryflash.SetTitle("Skipping cache image...");
-                cAppend("Skipping cache image...");
-            }
-
-            if (flashRecovery == true)
-            {
-                controllerFactoryflash.SetTitle("Flashing recovery...");
-                controllerFactoryflash.SetMessage("Progress 5/8");
-
-                cAppend("Flashing recovery...");
-                string[] fRecovery = System.IO.Directory.GetFiles(rStockFolder, "*recovery*", System.IO.SearchOption.TopDirectoryOnly);
-                if (fRecovery.Length > 0)
-                {
-                    recoveryPath = fRecovery[0].ToString();
-                    await Task.Run(() => Fastboot.Instance().Flash(IDDevicePartition.RECOVERY, recoveryPath));
-                }
-            }
-            else
-            {
-                controllerFactoryflash.SetTitle("Skipping recovery...");
-                controllerFactoryflash.SetMessage("Progress 5/8");
-                cAppend("Skipping recovery...");
-            }
-
-            if (flashSystem == true)
-            {
-                string[] fSystem = System.IO.Directory.GetFiles(rStockFolder, "*system*", System.IO.SearchOption.TopDirectoryOnly);
-                if (fSystem.Length > 0)
-                {
-                    controllerFactoryflash.SetTitle("Flashing system...");
-                    controllerFactoryflash.SetMessage("Progress 6/8");
-
-                    cAppend("Flashing system...");
-                    systemPath = fSystem[0].ToString();
-                    await Task.Run(() => Fastboot.Instance().Flash(IDDevicePartition.SYSTEM, systemPath));
-                }
-            }
-            else
-            {
-                controllerFactoryflash.SetTitle("Skipping system image...");
-                cAppend("Skipping system image...");
+                cAppend("Skipping radio...");
             }
 
             if (factoryEzMode == true)
             {
-                if (formatUserdata == true)
-                {
-                    controllerFactoryflash.SetTitle("Formatting userdata...");
-                    controllerFactoryflash.SetMessage("Progress 7/8");
+                controllerFactoryflash.SetTitle("Flashing Update Image...");
+                controllerFactoryflash.SetMessage("Progress 3/3");
 
-                    cAppend("Formatting userdata...");
-                    await Task.Run(() => Fastboot.Instance().Format(IDDevicePartition.USERDATA));
+                
 
-                    //string[] fUserdata = System.IO.Directory.GetFiles(rStockFolder, "*userdata*", System.IO.SearchOption.TopDirectoryOnly);
-                    //if (fUserdata.Length > 0)
-                    //{
-                    //    cAppend("Flashing userdata...");
-                    //    systemPath = fUserdata[0].ToString();
-                    //    await Task.Run(() => Fastboot.Instance().Flash(IDDevicePartition.USERDATA, userdataPath));
-                    //}
-                }
-                else
+                    string[] fImage = System.IO.Directory.GetFiles(rStockFolder, "*image*", System.IO.SearchOption.TopDirectoryOnly);
+                if (fImage.Length > 0)
                 {
-                    controllerFactoryflash.SetTitle("Not formatting userdata...");
-                    controllerFactoryflash.SetMessage("Progress 7/8");
-                    cAppend("Skipping erasing userdata");
-                }
-            }
-            else if (factoryEzMode == false)
-            {
-                if (formatUserdata == true)
-                {
-                    controllerFactoryflash.SetTitle("Formatting userdata...");
-                    controllerFactoryflash.SetMessage("Progress 7/8");
+                    cAppend("Flashing image...");
+                    imagePath = fImage[0].ToString();
 
-                    cAppend("Formatting userdata...");
-                    await Task.Run(() => Fastboot.Instance().Format(IDDevicePartition.USERDATA));
-                }
-                else
-                {
-                    controllerFactoryflash.SetTitle("Not formatting userdata...");
-                    controllerFactoryflash.SetMessage("Progress 7/8");
-                    cAppend("Skipping erasing userdata");
-                }
-            }
-
-            if (flashVendor == true)
-            {
-                string[] fVendor = System.IO.Directory.GetFiles(rStockFolder, "*vendor*", System.IO.SearchOption.TopDirectoryOnly);
-                if (fVendor.Length > 0)
-                {
-                    cAppend("Flashing Vendor...");
-                    controllerFactoryflash.SetTitle("Flashing vendor...");
-                    controllerFactoryflash.SetMessage("Progress 8/8");
-
-                    vendorPath = fVendor[0].ToString();
-                    MessageBox.Show(fVendor[0].ToString());
-                    await Task.Run(() => Fastboot.Instance().Flash(IDDevicePartition.VENDOR, vendorPath));
+                    if (formatUserdata == true)
+                    {
+                        controllerFactoryflash.SetTitle("Flashing image, wiping userdata...");
+                        await Task.Run(() => Fastboot.Instance().Execute(string.Format("update -w {0}", imagePath)));
+                    }
+                    else
+                    {
+                        controllerFactoryflash.SetTitle("Flashing image, keeping userdata...");
+                        await Task.Run(() => Fastboot.Instance().Execute(string.Format("update {0}", imagePath)));
+                    }
                 }
             }
             else
             {
-                cAppend("Skipping vendor...");
-            }
+                controllerFactoryflash.SetTitle("Extracting images...");
+                controllerFactoryflash.SetMessage("Progress 2.5/8");
 
-            cAppend("Flashing complete!\n");
-            cAppend("Done! Check the output and make sure the following have been flashed sucessfully.\n\nBootloader, Radio, Cache, System, Vendor.\n");
-
-            cAppend("You can reboot once you're happy with the flashing process.\n");
-
-            var result = await this.ShowMessageAsync("Flash Successful!", "Would you like to reboot now?", MessageDialogStyle.AffirmativeAndNegative, mySettings);
-            if (result == MessageDialogResult.Affirmative)
-            {
-                await Task.Run(() => Fastboot.Instance().Reboot(IDBoot.REBOOT));
-            }
-
-            var resultCleanup = await this.ShowMessageAsync("Flash Successful!", "Would you like to clean up (delete) the extracted files?", MessageDialogStyle.AffirmativeAndNegative, mySettings);
-            if (resultCleanup == MessageDialogResult.Affirmative)
-            {
-                try
+                string[] fImage = System.IO.Directory.GetFiles(rStockFolder, "*image*", System.IO.SearchOption.TopDirectoryOnly);
+                if (fImage.Length > 0)
                 {
-                    Directory.Delete("./Data/Downloads/Stock/.extracted/", true);
+                    cAppend("Extracting images...");
+                    imagePath = fImage[0].ToString();
+                    await Task.Run(() => FastZipUnpack(imagePath, rStockFolder));
                 }
-                catch (Exception ex)
+
+                if (flashBoot == true)
                 {
-                    await this.ShowMessageAsync("Unable to delete extracted files", ex.ToString(), MessageDialogStyle.Affirmative, mySettings);
+                    controllerFactoryflash.SetTitle("Flashing boot...");
+                    controllerFactoryflash.SetMessage("Progress 3/8");
+
+                    cAppend("Flashing boot...");
+                    string[] fBoot = System.IO.Directory.GetFiles(rStockFolder, "*boot*", System.IO.SearchOption.TopDirectoryOnly);
+                    if (fBoot.Length > 0)
+                    {
+                        bootPath = fBoot[0].ToString();
+                        await Task.Run(() => Fastboot.Instance().Flash(IDDevicePartition.BOOT, bootPath));
+                    }
+                }
+                else
+                {
+                    controllerFactoryflash.SetTitle("Skipping boot...");
+                    controllerFactoryflash.SetMessage("Progress 3/8");
+                    cAppend("Skipping boot image...");
+                }
+
+                controllerFactoryflash.SetTitle("Flashing cache...");
+                controllerFactoryflash.SetMessage("Progress 4/8");
+
+                if (flashCache == true)
+                {
+                    string[] fCache = Directory.GetFiles(rStockFolder, "*cache*", SearchOption.TopDirectoryOnly);
+                    if (fCache.Length > 0)
+                    {
+                        cAppend("Flashing cache...");
+                        cachePath = fCache[0].ToString();
+                        await Task.Run(() => Fastboot.Instance().Flash(IDDevicePartition.CACHE, cachePath));
+                    }
+                }
+                else
+                {
+                    controllerFactoryflash.SetTitle("Skipping cache image...");
+                    cAppend("Skipping cache image...");
+                }
+
+                if (flashRecovery == true)
+                {
+                    controllerFactoryflash.SetTitle("Flashing recovery...");
+                    controllerFactoryflash.SetMessage("Progress 5/8");
+
+                    cAppend("Flashing recovery...");
+                    string[] fRecovery = System.IO.Directory.GetFiles(rStockFolder, "*recovery*", System.IO.SearchOption.TopDirectoryOnly);
+                    if (fRecovery.Length > 0)
+                    {
+                        recoveryPath = fRecovery[0].ToString();
+                        await Task.Run(() => Fastboot.Instance().Flash(IDDevicePartition.RECOVERY, recoveryPath));
+                    }
+                }
+                else
+                {
+                    controllerFactoryflash.SetTitle("Skipping recovery...");
+                    controllerFactoryflash.SetMessage("Progress 5/8");
+                    cAppend("Skipping recovery...");
+                }
+
+                if (flashSystem == true)
+                {
+                    string[] fSystem = System.IO.Directory.GetFiles(rStockFolder, "*system*", System.IO.SearchOption.TopDirectoryOnly);
+                    if (fSystem.Length > 0)
+                    {
+                        controllerFactoryflash.SetTitle("Flashing system...");
+                        controllerFactoryflash.SetMessage("Progress 6/8");
+
+                        cAppend("Flashing system...");
+                        systemPath = fSystem[0].ToString();
+                        await Task.Run(() => Fastboot.Instance().Flash(IDDevicePartition.SYSTEM, systemPath));
+                    }
+                }
+                else
+                {
+                    controllerFactoryflash.SetTitle("Skipping system image...");
+                    cAppend("Skipping system image...");
+                }
+
+                if (formatUserdata == true)
+                {
+                    controllerFactoryflash.SetTitle("Formatting userdata...");
+                    controllerFactoryflash.SetMessage("Progress 7/8");
+
+                    cAppend("Formatting userdata...");
+                    await Task.Run(() => Fastboot.Instance().Format(IDDevicePartition.USERDATA));
+                }
+                else
+                {
+                    controllerFactoryflash.SetTitle("Not formatting userdata...");
+                    controllerFactoryflash.SetMessage("Progress 7/8");
+                    cAppend("Skipping erasing userdata");
+                }
+
+                if (flashVendor == true)
+                {
+                    string[] fVendor = System.IO.Directory.GetFiles(rStockFolder, "*vendor*", System.IO.SearchOption.TopDirectoryOnly);
+                    if (fVendor.Length > 0)
+                    {
+                        cAppend("Flashing Vendor...");
+                        controllerFactoryflash.SetTitle("Flashing vendor...");
+                        controllerFactoryflash.SetMessage("Progress 8/8");
+
+                        vendorPath = fVendor[0].ToString();
+                        MessageBox.Show(fVendor[0].ToString());
+                        await Task.Run(() => Fastboot.Instance().Flash(IDDevicePartition.VENDOR, vendorPath));
+                    }
+                }
+                else
+                {
+                    cAppend("Skipping vendor...");
+                }
+
+                cAppend("Flashing complete!\n");
+                cAppend("Done! Check the output and make sure the following have been flashed sucessfully.\n\nBootloader, Radio, Cache, System, Vendor.\n");
+
+                cAppend("You can reboot once you're happy with the flashing process.\n");
+
+                var result = await this.ShowMessageAsync("Flash Successful!", "Would you like to reboot now?", MessageDialogStyle.AffirmativeAndNegative, mySettings);
+                if (result == MessageDialogResult.Affirmative)
+                {
+                    await Task.Run(() => Fastboot.Instance().Reboot(IDBoot.REBOOT));
+                }
+
+                var resultCleanup = await this.ShowMessageAsync("Flash Successful!", "Would you like to clean up (delete) the extracted files?", MessageDialogStyle.AffirmativeAndNegative, mySettings);
+                if (resultCleanup == MessageDialogResult.Affirmative)
+                {
+                    try
+                    {
+                        Directory.Delete("./Data/Downloads/Stock/.extracted/", true);
+                    }
+                    catch (Exception ex)
+                    {
+                        await this.ShowMessageAsync("Unable to delete extracted files", ex.ToString(), MessageDialogStyle.Affirmative, mySettings);
+                    }
                 }
             }
             await controllerFactoryflash.CloseAsync();
@@ -2170,22 +2203,7 @@ namespace Nexus_6P_Toolkit_2
                         //Set ez mode options
                         flashBootloader = true;
                         flashRadio = true;
-                        flashCache = true;
-                        flashSystem = true;
-                        flashVendor = true;
-                        //Set other options
-                        if (cbKeepTWRP.IsChecked == true)
-                            flashRecovery = false;
-                        else
-                            flashRecovery = true;
-                        if (cbFormatUserdataEZ.IsChecked == true)
-                            formatUserdata = true;
-                        else
-                            formatUserdata = false;
-                        if (cbKeepBoot.IsChecked == true)
-                            flashBoot = false;
-                        else
-                            flashBoot = true;
+                        flashFormatUserdata = true;
                     }
                     else
                     {
@@ -2794,7 +2812,7 @@ namespace Nexus_6P_Toolkit_2
                     TextRange range;
                     FileStream fStream;
                     range = new TextRange(console.Document.ContentStart, console.Document.ContentEnd);
-                    fStream = new FileStream(dlg.FileName, FileMode.Create);
+                    fStream = new FileStream(dlg.FileName, System.IO.FileMode.Create);
                     range.Save(fStream, DataFormats.Text);
                     fStream.Close();
                 }
@@ -2995,7 +3013,7 @@ namespace Nexus_6P_Toolkit_2
                         else
                         {
                             MessageBox.Show("You're not supposed to get here! Please tell me on XDA: FOTA NOT DETECT, thanks!\n\nThe app will now exit.");
-                            Application.Current.Shutdown();
+                            System.Windows.Application.Current.Shutdown();
                         }
                     }
                     else
@@ -3056,7 +3074,7 @@ namespace Nexus_6P_Toolkit_2
                             else
                             {
                                 MessageBox.Show("You're not supposed to get here! Please tell me on XDA: FOTA NOT DETECT, thanks!\n\nThe app will now exit.");
-                                Application.Current.Shutdown();
+                                System.Windows.Application.Current.Shutdown();
                             }
                         }
                         else if (checkOTAHash == false)
@@ -3189,7 +3207,7 @@ namespace Nexus_6P_Toolkit_2
                 else
                 {
                     MessageBox.Show("You're not supposed to get here! Please tell me on XDA: FOTA NOT DETECT, thanks!\n\nThe app will now exit.");
-                    Application.Current.Shutdown();
+                    System.Windows.Application.Current.Shutdown();
                 }
                 statusProgress.IsIndeterminate = false;
             }
@@ -3502,6 +3520,16 @@ namespace Nexus_6P_Toolkit_2
         private void showProxySettings_Click(object sender, RoutedEventArgs e)
         {
                         
+        }
+
+        private async void button_Click(object sender, RoutedEventArgs e)
+        {
+            var gitClient = new GitHubClient(new ProductHeaderValue("Nexus6PToolkit2"));
+            var tokenAuth = new Credentials("token"); // NOTE: not real token
+            gitClient.Credentials = tokenAuth;
+            //gitClient.Repository.Hooks.Get()
+            var user = await gitClient.User.Get("squabbi");
+            MessageBox.Show(string.Format("{1}"), user.Name);
         }
     }
 }
