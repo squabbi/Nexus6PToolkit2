@@ -26,7 +26,6 @@ using ICSharpCode.SharpZipLib.Zip;
 using System.Windows.Controls;
 using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
-using Octokit;
 
 namespace Nexus_6P_Toolkit_2
 {
@@ -140,8 +139,6 @@ namespace Nexus_6P_Toolkit_2
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-
-
             System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
             FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
             string version = fvi.FileVersion;
@@ -3520,16 +3517,6 @@ namespace Nexus_6P_Toolkit_2
         private void showProxySettings_Click(object sender, RoutedEventArgs e)
         {
                         
-        }
-
-        private async void button_Click(object sender, RoutedEventArgs e)
-        {
-            var gitClient = new GitHubClient(new ProductHeaderValue("Nexus6PToolkit2"));
-            var tokenAuth = new Credentials("token"); // NOTE: not real token
-            gitClient.Credentials = tokenAuth;
-            //gitClient.Repository.Hooks.Get()
-            var user = await gitClient.User.Get("squabbi");
-            MessageBox.Show(string.Format("{1}"), user.Name);
         }
     }
 }
