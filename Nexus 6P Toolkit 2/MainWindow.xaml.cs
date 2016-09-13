@@ -159,7 +159,14 @@ namespace Nexus_6P_Toolkit_2
             {
                 cAppend("Checking for updates...\n");
                 Updater upd = new Updater();
-                upd.UpdateUrl = string.Format("https://s.basketbuild.com/dl/devs?dl=squabbi/{0}/toolkit/UpdateInfo.dat", codeDeviceName);
+                if (downloadProvider == "BasketBuild")
+                {
+                    upd.UpdateUrl = string.Format("https://s.basketbuild.com/dl/devs?dl=squabbi/{0}/toolkit/UpdateInfo.dat", codeDeviceName);
+                }
+                else
+                {
+                    upd.UpdateUrl = "";
+                }
                 upd.CheckForUpdates();
             }
             else
