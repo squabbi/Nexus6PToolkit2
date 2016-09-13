@@ -46,6 +46,7 @@ namespace Nexus_6P_Toolkit_2
         private string codeDeviceName = "angler";
         //Download int
         private int retryLvl = 0;
+        private string downloadProvider;
         //Factory image options
         private string stockVersion;
         private string stockEdition;
@@ -141,6 +142,18 @@ namespace Nexus_6P_Toolkit_2
 
             startupProcesses();
 
+            //Check for provider settings
+            if (Squabbi.Toolkit.Nexus6P.Properties.Settings.Default["downloadProvider"].ToString() == "BasketBuild")
+            {
+                rbProviderBasketBuild.IsChecked = true;
+                downloadProvider = "BasketBuild";
+            }
+            else
+            {
+                rbProviderGitHub.IsChecked = true;
+                downloadProvider = "GitHub";
+            }
+
             ////Check for updates
             if (!File.Exists("./debug"))
             {
@@ -215,17 +228,41 @@ namespace Nexus_6P_Toolkit_2
                         defaultProxy.Credentials = CredentialCache.DefaultCredentials;
                         client.Proxy = defaultProxy;
                     }
-                    client.DownloadFile(/*"https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/StockBuildList.ini"*/
+
+                    if (downloadProvider == "BasketBuild")
+                    {
+                        cAppend("Downloading list from BasketBuild");
+
+                        client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/StockBuildList.ini"
                         , "./Data/.cached/StockBuildList.ini");
-                    client.DownloadFile(/*"https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/TWRPBuildList.ini"*/
-                        , "./Data/.cached/TWRPBuildList.ini");
-                    client.DownloadFile(/*"https://s.basketbuild.com/dl/devs?dl=squabbi/superSU/SuBuildList.ini"*/
-                        , "./Data/.cached/SuBuildList.ini");
-                    client.DownloadFile(/*"https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/OTABuildList.ini"*/
-                        , "./Data/.cached/OTABuildList.ini");
-                    client.DownloadFile("https://raw.githubusercontent.com/squabbi/Nexus6PToolkit2/master/ModBootBuildList.ini?token=ABzkxHL8Br4eeRA5491RgQ2YRrNkEqAmks5X3nlfwA%3D%3D"/*"https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/ModBootBuildList.ini"*/
-                        , "./Data/.cached/ModBootBuildList.ini");
-                    client.Dispose();
+                        client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/TWRPBuildList.ini"
+                            , "./Data/.cached/TWRPBuildList.ini");
+                        client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/superSU/SuBuildList.ini"
+                            , "./Data/.cached/SuBuildList.ini");
+                        client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/OTABuildList.ini"
+                            , "./Data/.cached/OTABuildList.ini");
+                        client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/ModBootBuildList.ini"
+                            , "./Data/.cached/ModBootBuildList.ini");
+                        client.Dispose();
+                    }
+                    else
+                    {
+                        cAppend("Downloading lists from GitHub");
+                        client.DownloadFile("https://raw.githubusercontent.com/squabbi/Nexus6PToolkit2/master/Lists/StockBuildList.ini?token=ABzkxGU8PWotr5XPMXAZ8xRjPevjCS5Bks5X4LeHwA%3D%3D"
+                        , "./Data/.cached/StockBuildList.ini");
+                        client.DownloadFile("https://raw.githubusercontent.com/squabbi/Nexus6PToolkit2/master/Lists/TWRPBuildList.ini?token=ABzkxGU8PWotr5XPMXAZ8xRjPevjCS5Bks5X4LeHwA%3D%3D"
+
+                            , "./Data/.cached/TWRPBuildList.ini");
+                        client.DownloadFile("https://raw.githubusercontent.com/squabbi/Nexus6PToolkit2/master/Lists/SuBuildList.ini?token=ABzkxGU8PWotr5XPMXAZ8xRjPevjCS5Bks5X4LeHwA%3D%3D"
+
+                            , "./Data/.cached/SuBuildList.ini");
+                        client.DownloadFile("https://raw.githubusercontent.com/squabbi/Nexus6PToolkit2/master/Lists/OTABootBuildList.ini?token=ABzkxGU8PWotr5XPMXAZ8xRjPevjCS5Bks5X4LeHwA%3D%3D"
+
+                            , "./Data/.cached/OTABuildList.ini");
+                        client.DownloadFile("https://raw.githubusercontent.com/squabbi/Nexus6PToolkit2/master/Lists/ModBootBuildList.ini?token=ABzkxGU8PWotr5XPMXAZ8xRjPevjCS5Bks5X4LeHwA%3D%3D"
+                            , "./Data/.cached/ModBootBuildList.ini");
+                        client.Dispose();
+                    }                 
                 }
             }
             catch
@@ -1127,6 +1164,21 @@ namespace Nexus_6P_Toolkit_2
             ADB.Stop();
             Fastboot.Dispose();
             ADB.Dispose();
+
+            //Save settings
+            if (rbProviderBasketBuild.IsChecked == true)
+            {
+                Squabbi.Toolkit.Nexus6P.Properties.Settings.Default["downloadProvider"] = "BasketBuild";
+            }
+            else if (rbProviderGitHub.IsChecked == true)
+            {
+                Squabbi.Toolkit.Nexus6P.Properties.Settings.Default["downloadProvider"] = "GitHub";
+            }
+            else
+            {
+                Squabbi.Toolkit.Nexus6P.Properties.Settings.Default["downloadProvider"] = "BasketBuild";
+            }
+            Squabbi.Toolkit.Nexus6P.Properties.Settings.Default.Save();
         }
 
         private async void adbVersion_Click(object sender, RoutedEventArgs e)

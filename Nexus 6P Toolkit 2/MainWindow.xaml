@@ -140,8 +140,8 @@
                     </GroupBox>
                     <GroupBox x:Name="groupBox11" Header="Select Provider" HorizontalAlignment="Left" Margin="10,154,0,0" VerticalAlignment="Top" Height="139" Width="247" IsEnabled="False">
                         <Grid Margin="0">
-                            <RadioButton x:Name="radioButton" Content="BasketBuild" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" IsChecked="True"/>
-                            <RadioButton x:Name="radioButton1" Content="GitHub" HorizontalAlignment="Left" Margin="10,33,0,0" VerticalAlignment="Top" IsChecked="True"/>
+                            <RadioButton x:Name="rbProviderBasketBuild" Content="BasketBuild" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" IsChecked="True"/>
+                            <RadioButton x:Name="rbProviderGitHub" Content="GitHub" HorizontalAlignment="Left" Margin="10,33,0,0" VerticalAlignment="Top" IsChecked="True"/>
                             <TextBlock x:Name="textBlock4" HorizontalAlignment="Left" Margin="10,60,0,0" TextWrapping="Wrap" VerticalAlignment="Top"><Run Text="Changes will be saved upon exit."/><Run Text=" Does not change provider of autoupdater."/></TextBlock>
                         </Grid>
                     </GroupBox>
