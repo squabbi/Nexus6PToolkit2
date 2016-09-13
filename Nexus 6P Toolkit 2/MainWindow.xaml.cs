@@ -248,15 +248,15 @@ namespace Nexus_6P_Toolkit_2
                     else
                     {
                         cAppend("Downloading lists from GitHub");
-                        client.DownloadFile("https://raw.githubusercontent.com/squabbi/Nexus6PToolkit2/master/Lists/StockBuildList.ini?token=ABzkxGU8PWotr5XPMXAZ8xRjPevjCS5Bks5X4LeHwA%3D%3D"
+                        client.DownloadFile("https://raw.githubusercontent.com/squabbi/Nexus6PToolkit2/master/Lists/StockBuildList.ini?token=ABzkxE4O4Jmlr4-nSUvaf3oFRV0n7Savks5X4Pq7wA%3D%3D"
                         , "./Data/.cached/StockBuildList.ini");
-                        client.DownloadFile("https://raw.githubusercontent.com/squabbi/Nexus6PToolkit2/master/Lists/TWRPBuildList.ini?token=ABzkxGU8PWotr5XPMXAZ8xRjPevjCS5Bks5X4LeHwA%3D%3D"
+                        client.DownloadFile("https://raw.githubusercontent.com/squabbi/Nexus6PToolkit2/master/Lists/TWRPBuildList.ini?token=ABzkxMbaJ2lpjbJz_cDo_5CwtThOo_Ssks5X4PrvwA%3D%3D"
 
                             , "./Data/.cached/TWRPBuildList.ini");
-                        client.DownloadFile("https://raw.githubusercontent.com/squabbi/Nexus6PToolkit2/master/Lists/SuBuildList.ini?token=ABzkxGU8PWotr5XPMXAZ8xRjPevjCS5Bks5X4LeHwA%3D%3D"
+                        client.DownloadFile("https://raw.githubusercontent.com/squabbi/Nexus6PToolkit2/master/Lists/SuBuildList.ini?token=ABzkxHLdPQP-yLX6GSE-q_rOb72V49s4ks5X4PrtwA%3D%3D"
 
                             , "./Data/.cached/SuBuildList.ini");
-                        client.DownloadFile("https://raw.githubusercontent.com/squabbi/Nexus6PToolkit2/master/Lists/OTABootBuildList.ini?token=ABzkxGU8PWotr5XPMXAZ8xRjPevjCS5Bks5X4LeHwA%3D%3D"
+                        client.DownloadFile("https://raw.githubusercontent.com/squabbi/Nexus6PToolkit2/master/Lists/OTABuildList.ini?token=ABzkxCdEQA_SyCYgpQYCTTlPHF2yCyM-ks5X4PrrwA%3D%3D"
 
                             , "./Data/.cached/OTABuildList.ini");
                         client.DownloadFile("https://raw.githubusercontent.com/squabbi/Nexus6PToolkit2/master/Lists/ModBootBuildList.ini?token=ABzkxGU8PWotr5XPMXAZ8xRjPevjCS5Bks5X4LeHwA%3D%3D"
