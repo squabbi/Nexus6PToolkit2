@@ -12,21 +12,15 @@ using aUpdater;
 using INI;
 using AndroidCtrl;
 using AndroidCtrl.ADB;
-using AndroidCtrl.AAPT;
 using AndroidCtrl.Tools;
-using AndroidCtrl.Signer;
 using AndroidCtrl.Fastboot;
 using System.Runtime.InteropServices;
 using System.ComponentModel;
 using System.Windows.Media;
 using System.Security.Cryptography;
-using ICSharpCode.SharpZipLib.GZip;
-using ICSharpCode.SharpZipLib.Tar;
 using ICSharpCode.SharpZipLib.Zip;
 using System.Windows.Controls;
-using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
-using Squabbi.Toolkit.Nexus6P;
 
 namespace Nexus_6P_Toolkit_2
 {
@@ -42,7 +36,7 @@ namespace Nexus_6P_Toolkit_2
                 MessageBox.Show(
                     "There seems to be another instance of the toolkit running. Please make sure it is not running in the background.",
                     "Another Instance is running", MessageBoxButton.OK, MessageBoxImage.Error);
-                Close();
+                Close();             
             }
 
             InitializeComponent();
@@ -52,13 +46,15 @@ namespace Nexus_6P_Toolkit_2
         private string codeDeviceName = "angler";
         //Download int
         private int retryLvl = 0;
+        private string downloadProvider;
         //Factory image options
         private string stockVersion;
         private string stockEdition;
         private string stockUniqueID;
-        private string pStockMD5;
+        //private string pStockMD5;
         private string pStockFileName;
         private string isStockDev;
+        //private string stockExtension;
         //Factory image paths
         private string bootloaderPath;
         private string radioPath;
@@ -79,6 +75,7 @@ namespace Nexus_6P_Toolkit_2
         private bool flashRecovery;
         private bool flashSystem;
         private bool flashVendor;
+        private bool flashFormatUserdata;
         //TWRP options
         private string twrpVersion;
         private string pTWRPMD5;
@@ -135,8 +132,6 @@ namespace Nexus_6P_Toolkit_2
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            
-
             System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
             FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
             string version = fvi.FileVersion;
@@ -146,7 +141,19 @@ namespace Nexus_6P_Toolkit_2
             cAppend("Set version.");
 
             startupProcesses();
-            
+
+            //Check for provider settings
+            if (Squabbi.Toolkit.Nexus6P.Properties.Settings.Default["downloadProvider"].ToString() == "BasketBuild")
+            {
+                rbProviderBasketBuild.IsChecked = true;
+                downloadProvider = "BasketBuild";
+            }
+            else
+            {
+                rbProviderGitHub.IsChecked = true;
+                downloadProvider = "GitHub";
+            }
+
             ////Check for updates
             if (!File.Exists("./debug"))
             {
@@ -161,7 +168,7 @@ namespace Nexus_6P_Toolkit_2
 
         public void startupProcesses()
         {
-            
+
             //Checks and Creates folders
             cAppend("Checking folder structure.");
             CheckFileSystem();
@@ -180,7 +187,7 @@ namespace Nexus_6P_Toolkit_2
             cAppend("Starting detection service.");
             DeviceDetectionService();
 
-        } 
+        }
 
         public void CheckandDeploy()
         {
@@ -208,48 +215,57 @@ namespace Nexus_6P_Toolkit_2
             }
         }
 
-        public static bool CheckForInternetConnection()
+        public async void downloadCachedFiles()
         {
             try
             {
-                using (var client = new WebClient())
+                using (WebClient client = new WebClient())
                 {
-                    using (var stream = client.OpenRead("http://microsoft.com/"))
+                    //Proxy for WebClient
+                    IWebProxy defaultProxy = WebRequest.DefaultWebProxy;
+                    if (defaultProxy != null)
                     {
-                        return true;
+                        defaultProxy.Credentials = CredentialCache.DefaultCredentials;
+                        client.Proxy = defaultProxy;
                     }
+
+                    if (downloadProvider == "BasketBuild")
+                    {
+                        cAppend("Downloading list from BasketBuild");
+
+                        client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/StockBuildList.ini"
+                        , "./Data/.cached/StockBuildList.ini");
+                        client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/TWRPBuildList.ini"
+                            , "./Data/.cached/TWRPBuildList.ini");
+                        client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/superSU/SuBuildList.ini"
+                            , "./Data/.cached/SuBuildList.ini");
+                        client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/OTABuildList.ini"
+                            , "./Data/.cached/OTABuildList.ini");
+                        client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/ModBootBuildList.ini"
+                            , "./Data/.cached/ModBootBuildList.ini");
+                        client.Dispose();
+                    }
+                    else
+                    {
+                        cAppend("Downloading lists from GitHub");
+                        client.DownloadFile("https://raw.githubusercontent.com/squabbi/Nexus6PToolkit2/master/Lists/StockBuildList.ini?token=ABzkxGU8PWotr5XPMXAZ8xRjPevjCS5Bks5X4LeHwA%3D%3D"
+                        , "./Data/.cached/StockBuildList.ini");
+                        client.DownloadFile("https://raw.githubusercontent.com/squabbi/Nexus6PToolkit2/master/Lists/TWRPBuildList.ini?token=ABzkxGU8PWotr5XPMXAZ8xRjPevjCS5Bks5X4LeHwA%3D%3D"
+
+                            , "./Data/.cached/TWRPBuildList.ini");
+                        client.DownloadFile("https://raw.githubusercontent.com/squabbi/Nexus6PToolkit2/master/Lists/SuBuildList.ini?token=ABzkxGU8PWotr5XPMXAZ8xRjPevjCS5Bks5X4LeHwA%3D%3D"
+
+                            , "./Data/.cached/SuBuildList.ini");
+                        client.DownloadFile("https://raw.githubusercontent.com/squabbi/Nexus6PToolkit2/master/Lists/OTABootBuildList.ini?token=ABzkxGU8PWotr5XPMXAZ8xRjPevjCS5Bks5X4LeHwA%3D%3D"
+
+                            , "./Data/.cached/OTABuildList.ini");
+                        client.DownloadFile("https://raw.githubusercontent.com/squabbi/Nexus6PToolkit2/master/Lists/ModBootBuildList.ini?token=ABzkxGU8PWotr5XPMXAZ8xRjPevjCS5Bks5X4LeHwA%3D%3D"
+                            , "./Data/.cached/ModBootBuildList.ini");
+                        client.Dispose();
+                    }                 
                 }
             }
             catch
-            {
-                return false;
-            }
-        }
-
-        public async void downloadCachedFiles()
-        {
-            bool inetR = CheckForInternetConnection();
-            if (inetR == true)
-            {
-                try
-                {
-                    using (WebClient client = new WebClient())
-                    {
-                        client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/StockBuildList.ini", "./Data/.cached/StockBuildList.ini");
-                        client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/TWRPBuildList.ini", "./Data/.cached/TWRPBuildList.ini");
-                        client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/superSU/SuBuildList.ini", "./Data/.cached/SuBuildList.ini");
-                        client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/OTABuildList.ini", "./Data/.cached/OTABuildList.ini");
-                        client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/ModBootBuildList.ini", "./Data/.cached/ModBootBuildList.ini");
-                        client.Dispose();
-                    }
-                }
-                catch
-                {
-                    await this.ShowMessageAsync("No Network", (string.Join("An active internet connection was not found! You will only be able to flash your own images and zips untill you restart the toolkit with an internet connection.",
-                        "If the problem persists, check your firewall to allow the toolkit as an exeption. Cached files will be used instead and may be out of date.")));
-                }
-            }
-            else
             {
                 await this.ShowMessageAsync("No Network", (string.Join("An active internet connection was not found! You will only be able to flash your own images and zips untill you restart the toolkit with an internet connection.",
                     "If the problem persists, check your firewall to allow the toolkit as an exeption. Cached files will be used instead and may be out of date.")));
@@ -258,86 +274,119 @@ namespace Nexus_6P_Toolkit_2
 
         public void getBuildLists()
         {
-            
+            //Check for required string in the first line
+            string secStringCheckSBL = File.ReadLines("./Data/.cached/StockBuildList.ini").First(); // gets the first line from file.
+            if (secStringCheckSBL == "if0L4U9vTS") // check if first line matches
+            {
+                // success
+                IniFileName iniItems = new IniFileName("./Data/.cached/StockBuildList.ini");
+                string[] iniValues = iniItems.GetEntryNames(fullDeviceName);
 
-            //Stock Lists
-            FileInfo fStock = new FileInfo("./Data/.cached/StockBuildList.ini");
-            long fStockL = fStock.Length;
-            if (fStockL > 299)
+                //Foreach entry make a combobox item
+                foreach (string iniValue in iniValues)
+                {
+                    App.Current.Dispatcher.Invoke((Action)delegate
+                    {
+                        stockBuildList.Items.Add(iniValue);
+                    });
+                }
+
+                cAppend("INFO: Loaded StockBuildList");
+            }
+            else
             {
-                IniFileName iniStock = new IniFileName("./Data/.cached/StockBuildList.ini");
-                stockSelectionValues = iniStock.GetEntryNames(fullDeviceName);
+                // fail
+                cAppend("WARN: Security string not found for StockBuildList.");
             }
 
-            //TWRP Lists
-            FileInfo fTWRP = new FileInfo("./Data/.cached/TWRPBuildList.ini");
-            long fTWRPL = fTWRP.Length;
-            if (fTWRPL > 299)
+            string secStringCheckTBL = File.ReadLines("./Data/.cached/TWRPBuildList.ini").First(); // gets the first line from file.
+            if (secStringCheckTBL == "if0L4U9vTS") // check if first line matches
             {
-                IniFileName iniTWRP = new IniFileName("./Data/.cached/TWRPBuildList.ini");
-                twrpSelectionValues = iniTWRP.GetEntryNames(fullDeviceName);
+                // success
+                IniFileName iniItems = new IniFileName("./Data/.cached/TWRPBuildList.ini");
+                string[] iniValues = iniItems.GetEntryNames(fullDeviceName);
+                //Foreach entry make a combobox item
+                foreach (string iniValue in iniValues)
+                {
+                    App.Current.Dispatcher.Invoke((Action)delegate
+                    {
+                        twrpBuildList.Items.Add(iniValue);
+                    });
+                }
+                cAppend("INFO: Loaded TWRPBuildList");
+            }
+            else
+            {
+                // fail
+                cAppend("WARN: Security string not found for TWRPBuildList.");
             }
 
-            FileInfo fSU = new FileInfo("./Data/.cached/SuBuildList.ini");
-            long fSUL = fSU.Length;
-            if (fSUL > 299)
+            string secStringCheckSuBL = File.ReadLines("./Data/.cached/SuBuildList.ini").First(); // gets the first line from file.
+            if (secStringCheckSuBL == "if0L4U9vTS") // check if first line matches
             {
-                //SuperSU Lists
-                IniFileName iniSU = new IniFileName("./Data/.cached/SuBuildList.ini");
-                string[] suSecValue = iniSU.GetSectionNames();
-                suSelectionValues = iniSU.GetEntryNames(suSecValue[0]);
-            }
-            //OTA Lists
-            FileInfo fOTA = new FileInfo("./Data/.cached/OTABuildLIst.ini");
-            long fOTAL = fOTA.Length;
-            if (fOTAL > 299)
-            {
-                IniFileName iniOTA = new IniFileName("./Data/.cached/OTABuildLIst.ini");
-                otaSelectionValues = iniOTA.GetEntryNames(fullDeviceName);
-            }
-            //Modified Boot Lists
-            FileInfo fModBoot = new FileInfo("./Data/.cached/ModBootBuildList.ini");
-            long fModBootL = fModBoot.Length;
-            if (fModBootL > 299)
-            {
-                IniFileName iniModBoot = new IniFileName("./Data/.cached/ModBootBuildList.ini");
-                modBootSelectionValues = iniModBoot.GetEntryNames(fullDeviceName);
-            }
-            //Foreach entry make a combobox item
-            foreach (string stockSecVal in stockSelectionValues)
-            {
-                App.Current.Dispatcher.Invoke((Action)delegate
+                // success
+                IniFileName iniItems = new IniFileName("./Data/.cached/SuBuildList.ini");
+                string[] iniSecValue = iniItems.GetSectionNames();
+                string[] iniValues = iniItems.GetEntryNames(iniSecValue[0]);
+
+                //Foreach entry make a combobox item
+                foreach (string iniValue in iniValues)
                 {
-                    stockBuildList.Items.Add(stockSecVal);
-                });
+                    App.Current.Dispatcher.Invoke((Action)delegate
+                    {
+                        supersuBuildList.Items.Add(iniValue);
+                    });
+                }
+                cAppend("INFO: Loaded SuBuildList");
             }
-            foreach (string twrpSecVal in twrpSelectionValues)
+            else
             {
-                App.Current.Dispatcher.Invoke((Action)delegate
-                {
-                    twrpBuildList.Items.Add(twrpSecVal);
-                });
+                // fail
+                cAppend("WARN: Security string not found for SuBuildList.");
             }
-            foreach (string suSecVal in suSelectionValues)
+
+            string secStringCheckOBL = File.ReadLines("./Data/.cached/OTABuildList.ini").First(); // gets the first line from file.
+            if (secStringCheckOBL == "if0L4U9vTS") // check if first line matches
             {
-                App.Current.Dispatcher.Invoke((Action)delegate
+                // success
+                IniFileName iniItems = new IniFileName("./Data/.cached/OTABuildList.ini");
+                string[] iniValues = iniItems.GetEntryNames(fullDeviceName);
+                //Foreach entry make a combobox item
+                foreach (string iniValue in iniValues)
                 {
-                    supersuBuildList.Items.Add(suSecVal);
-                });
+                    App.Current.Dispatcher.Invoke((Action)delegate
+                    {
+                        otaBuildList.Items.Add(iniValue);
+                    });
+                }
+                cAppend("INFO: Loaded OTABuildList");
             }
-            foreach (string otaSecVal in otaSelectionValues)
+            else
             {
-                App.Current.Dispatcher.Invoke((Action)delegate
-                {
-                    otaBuildList.Items.Add(otaSecVal);
-                });
+                // fail
+                cAppend("WARN: Security string not found for OTABuildList.");
             }
-            foreach (string modBootSecVal in modBootSelectionValues)
+
+            string secStringCheckMBL = File.ReadLines("./Data/.cached/ModBootBuildList.ini").First(); // gets the first line from file.
+            if (secStringCheckMBL == "if0L4U9vTS") // check if first line matches specified languages
             {
-                App.Current.Dispatcher.Invoke((Action)delegate
+                // success
+                IniFileName iniItems = new IniFileName("./Data/.cached/ModBootBuildList.ini");
+                string[] iniValues = iniItems.GetEntryNames(fullDeviceName);
+                //Foreach entry make a combobox item
+                foreach (string iniValue in iniValues)
                 {
-                    modBootBuildList.Items.Add(modBootSecVal);
-                });
+                    App.Current.Dispatcher.Invoke((Action)delegate
+                    {
+                        modBootBuildList.Items.Add(iniValue);
+                    });
+                }
+                cAppend("INFO: Loaded ModBootBuildList");
+            }
+            else
+            {
+                // fail
+                cAppend("WARN: Security string not found for ModBootBuildList.");
             }
         }
 
@@ -804,7 +853,26 @@ namespace Nexus_6P_Toolkit_2
             if (!Directory.Exists(stockImage))
             {
                 cAppend("Extracting factory image...\n");
-                await Task.Run(() => extractTGZ(stockImage, "./Data/Downloads/Stock/.extracted/"));
+                //if (!string.IsNullOrEmpty(stockExtension))
+                //{
+                //    if (stockExtension == "tgz")
+                //    {
+                //        await Task.Run(() => extractTGZ(stockImage, "./Data/Downloads/Stock/.extracted/"));
+                //    }
+                //    else if (stockExtension == "zip")
+                //    {
+                //        await Task.Run(() => FastZipUnpack(stockImage, "./Data/Downloads/Stock/.extracted/"));
+                //    }
+                //}
+                //else
+                //{
+                //    MessageBox.Show("This is unhandled! Tell me on XDA: 'stock extention not set'.\n\n" +
+                //        "The toolkit will now close.");
+                //    Application.Current.Shutdown();
+                //}
+
+                //Start extraction
+                await Task.Run(() => FastZipUnpack(stockImage, "./Data/Downloads/Stock/.extracted/"));
             }
             else
             {
@@ -818,7 +886,27 @@ namespace Nexus_6P_Toolkit_2
                     if (resultExtract == MessageDialogResult.Affirmative)
                     {
                         cAppend("Extracting factory image...\n");
-                        await Task.Run(() => extractTGZ(stockImage, "./Data/Downloads/Stock/.extracted/"));
+                        //if (!string.IsNullOrEmpty(stockExtension))
+                        //{
+                        //    if (stockExtension == "tgz")
+                        //    {
+                        //        await Task.Run(() => extractTGZ(stockImage, "./Data/Downloads/Stock/.extracted/"));
+                        //    }
+                        //    else if (stockExtension == "zip")
+                        //    {
+                        //        await Task.Run(() => FastZipUnpack(stockImage, "./Data/Downloads/Stock/.extracted/"));
+                        //    }
+                        //}
+                        //else
+                        //{
+                        //    MessageBox.Show("This is unhandled! Tell me on XDA: 'stock extention not set'.\n\n" +
+                        //        "The toolkit will now close.");
+                        //    Application.Current.Shutdown();
+                        //}
+
+                        //Start extraction
+                        await Task.Run(() => FastZipUnpack(stockImage, "./Data/Downloads/Stock/.extracted/"));
+                        
                     }
                     else
                     {
@@ -829,210 +917,239 @@ namespace Nexus_6P_Toolkit_2
 
             string rStockFolder = Path.Combine("./Data/Downloads/Stock/.extracted/", string.Format("{0}-{1}", codeDeviceName, stockVersion));
 
-            controllerFactoryflash.SetTitle("Flashing bootloader...");
-            controllerFactoryflash.SetMessage("Progress 1/8");
-
-            string[] fBootloader = System.IO.Directory.GetFiles(rStockFolder, "*bootloader*", System.IO.SearchOption.TopDirectoryOnly);
-            if (fBootloader.Length > 0)
+            if (factoryEzMode == true)
             {
-                cAppend("Flashing bootloader...");
-                bootloaderPath = fBootloader[0].ToString();
-                await Task.Run(() => Fastboot.Instance().Flash(IDDevicePartition.BOOTLOADER, bootloaderPath));
+                controllerFactoryflash.SetTitle("Flashing bootloader...");
+                controllerFactoryflash.SetMessage("Progress 1/3");
+            }
+            else
+            {
+                controllerFactoryflash.SetTitle("Flashing bootloader...");
+                controllerFactoryflash.SetMessage("Progress 1/8");
             }
 
-            controllerFactoryflash.SetIndeterminate();
-            controllerFactoryflash.SetTitle("Rebooting to bootloader...");
-
-            await Task.Run(() => Fastboot.Instance().Reboot(IDBoot.BOOTLOADER));
-
-            controllerFactoryflash.SetTitle("Flashing radio...");
-            controllerFactoryflash.SetMessage("Progress 2/8");
-
-            string[] fRadio = System.IO.Directory.GetFiles(rStockFolder, "*radio*", System.IO.SearchOption.TopDirectoryOnly);
-            if (fRadio.Length > 0)
+            if (flashBootloader == true)
             {
-                cAppend("Flashing radio...");
-                radioPath = fRadio[0].ToString();
-                await Task.Run(() => Fastboot.Instance().Flash(IDDevicePartition.RADIO, radioPath));
-            }
-
-            controllerFactoryflash.SetIndeterminate();
-            controllerFactoryflash.SetTitle("Rebooting to bootloader...");
-
-            await Task.Run(() => Fastboot.Instance().Reboot(IDBoot.BOOTLOADER));
-
-            controllerFactoryflash.SetTitle("Extracting images...");
-            controllerFactoryflash.SetMessage("Progress 2.5/8");
-
-            string[] fImage = System.IO.Directory.GetFiles(rStockFolder, "*image*", System.IO.SearchOption.TopDirectoryOnly);
-            if (fImage.Length > 0)
-            {
-                cAppend("Extracting images...");
-                imagePath = fImage[0].ToString();
-                await Task.Run(() => FastZipUnpack(imagePath, rStockFolder));
-            }
-
-            if (flashBoot == true)
-            {
-                controllerFactoryflash.SetTitle("Flashing boot...");
-                controllerFactoryflash.SetMessage("Progress 3/8");
-
-                cAppend("Flashing boot...");
-                string[] fBoot = System.IO.Directory.GetFiles(rStockFolder, "*boot*", System.IO.SearchOption.TopDirectoryOnly);
-                if (fBoot.Length > 0)
+                string[] fBootloader = System.IO.Directory.GetFiles(rStockFolder, "*bootloader*", System.IO.SearchOption.TopDirectoryOnly);
+                if (fBootloader.Length > 0)
                 {
-                    bootPath = fBoot[0].ToString();
-                    await Task.Run(() => Fastboot.Instance().Flash(IDDevicePartition.BOOT, bootPath));
+                    cAppend("Flashing bootloader...");
+                    bootloaderPath = fBootloader[0].ToString();
+                    await Task.Run(() => Fastboot.Instance().Flash(IDDevicePartition.BOOTLOADER, bootloaderPath));
+
+                    controllerFactoryflash.SetIndeterminate();
+                    controllerFactoryflash.SetTitle("Rebooting to bootloader...");
+
+                    await Task.Run(() => Fastboot.Instance().Reboot(IDBoot.BOOTLOADER));
                 }
             }
             else
             {
-                controllerFactoryflash.SetTitle("Skipping boot...");
-                controllerFactoryflash.SetMessage("Progress 3/8");
-                cAppend("Skipping boot image...");
-            }
+                cAppend("Skipping bootloader...");
+            }         
 
-            controllerFactoryflash.SetTitle("Flashing cache...");
-            controllerFactoryflash.SetMessage("Progress 4/8");
-
-            if (flashCache == true)
+            if (flashRadio == true)
             {
-                string[] fCache = Directory.GetFiles(rStockFolder, "*cache*", SearchOption.TopDirectoryOnly);
-                if (fCache.Length > 0)
+                string[] fRadio = System.IO.Directory.GetFiles(rStockFolder, "*radio*", System.IO.SearchOption.TopDirectoryOnly);
+                if (fRadio.Length > 0)
                 {
-                    cAppend("Flashing cache...");
-                    cachePath = fCache[0].ToString();
-                    await Task.Run(() => Fastboot.Instance().Flash(IDDevicePartition.CACHE, cachePath));
+                    if (factoryEzMode == true)
+                    {
+                        controllerFactoryflash.SetTitle("Flashing radio...");
+                        controllerFactoryflash.SetMessage("Progress 2/3");
+                    }
+                    else
+                    {
+                        controllerFactoryflash.SetTitle("Flashing radio...");
+                        controllerFactoryflash.SetMessage("Progress 2/8");
+                    }
+                   
+                    radioPath = fRadio[0].ToString();
+                    await Task.Run(() => Fastboot.Instance().Flash(IDDevicePartition.RADIO, radioPath));
+
+                    controllerFactoryflash.SetIndeterminate();
+                    controllerFactoryflash.SetTitle("Rebooting to bootloader...");
+
+                    await Task.Run(() => Fastboot.Instance().Reboot(IDBoot.BOOTLOADER));
                 }
             }
             else
             {
-                controllerFactoryflash.SetTitle("Skipping cache image...");
-                cAppend("Skipping cache image...");
-            }
-
-            if (flashRecovery == true)
-            {
-                controllerFactoryflash.SetTitle("Flashing recovery...");
-                controllerFactoryflash.SetMessage("Progress 5/8");
-
-                cAppend("Flashing recovery...");
-                string[] fRecovery = System.IO.Directory.GetFiles(rStockFolder, "*recovery*", System.IO.SearchOption.TopDirectoryOnly);
-                if (fRecovery.Length > 0)
-                {
-                    recoveryPath = fRecovery[0].ToString();
-                    await Task.Run(() => Fastboot.Instance().Flash(IDDevicePartition.RECOVERY, recoveryPath));
-                }
-            }
-            else
-            {
-                controllerFactoryflash.SetTitle("Skipping recovery...");
-                controllerFactoryflash.SetMessage("Progress 5/8");
-                cAppend("Skipping recovery...");
-            }
-
-            if (flashSystem == true)
-            {
-                string[] fSystem = System.IO.Directory.GetFiles(rStockFolder, "*system*", System.IO.SearchOption.TopDirectoryOnly);
-                if (fSystem.Length > 0)
-                {
-                    controllerFactoryflash.SetTitle("Flashing system...");
-                    controllerFactoryflash.SetMessage("Progress 6/8");
-
-                    cAppend("Flashing system...");
-                    systemPath = fSystem[0].ToString();
-                    await Task.Run(() => Fastboot.Instance().Flash(IDDevicePartition.SYSTEM, systemPath));
-                }
-            }
-            else
-            {
-                controllerFactoryflash.SetTitle("Skipping system image...");
-                cAppend("Skipping system image...");
+                cAppend("Skipping radio...");
             }
 
             if (factoryEzMode == true)
             {
-                if (formatUserdata == true)
-                {
-                    controllerFactoryflash.SetTitle("Formatting userdata...");
-                    controllerFactoryflash.SetMessage("Progress 7/8");
+                controllerFactoryflash.SetTitle("Flashing Update Image...");
+                controllerFactoryflash.SetMessage("Progress 3/3");
 
-                    cAppend("Formatting userdata...");
-                    await Task.Run(() => Fastboot.Instance().Format(IDDevicePartition.USERDATA));
+                
 
-                    //string[] fUserdata = System.IO.Directory.GetFiles(rStockFolder, "*userdata*", System.IO.SearchOption.TopDirectoryOnly);
-                    //if (fUserdata.Length > 0)
-                    //{
-                    //    cAppend("Flashing userdata...");
-                    //    systemPath = fUserdata[0].ToString();
-                    //    await Task.Run(() => Fastboot.Instance().Flash(IDDevicePartition.USERDATA, userdataPath));
-                    //}
-                }
-                else
+                    string[] fImage = System.IO.Directory.GetFiles(rStockFolder, "*image*", System.IO.SearchOption.TopDirectoryOnly);
+                if (fImage.Length > 0)
                 {
-                    controllerFactoryflash.SetTitle("Not formatting userdata...");
-                    controllerFactoryflash.SetMessage("Progress 7/8");
-                    cAppend("Skipping erasing userdata");
-                }
-            }
-            else if (factoryEzMode == false)
-            {
-                if (formatUserdata == true)
-                {
-                    controllerFactoryflash.SetTitle("Formatting userdata...");
-                    controllerFactoryflash.SetMessage("Progress 7/8");
+                    cAppend("Flashing image...");
+                    imagePath = fImage[0].ToString();
 
-                    cAppend("Formatting userdata...");
-                    await Task.Run(() => Fastboot.Instance().Format(IDDevicePartition.USERDATA));
-                }
-                else
-                {
-                    controllerFactoryflash.SetTitle("Not formatting userdata...");
-                    controllerFactoryflash.SetMessage("Progress 7/8");
-                    cAppend("Skipping erasing userdata");
-                }
-            }
-
-            if (flashVendor == true)
-            {
-                string[] fVendor = System.IO.Directory.GetFiles(rStockFolder, "*vendor*", System.IO.SearchOption.TopDirectoryOnly);
-                if (fVendor.Length > 0)
-                {
-                    cAppend("Flashing Vendor...");
-                    controllerFactoryflash.SetTitle("Flashing vendor...");
-                    controllerFactoryflash.SetMessage("Progress 8/8");
-
-                    vendorPath = fVendor[0].ToString();
-                    MessageBox.Show(fVendor[0].ToString());
-                    await Task.Run(() => Fastboot.Instance().Flash(IDDevicePartition.VENDOR, vendorPath));
+                    if (formatUserdata == true)
+                    {
+                        controllerFactoryflash.SetTitle("Flashing image, wiping userdata...");
+                        await Task.Run(() => Fastboot.Instance().Execute(string.Format("update -w {0}", imagePath)));
+                    }
+                    else
+                    {
+                        controllerFactoryflash.SetTitle("Flashing image, keeping userdata...");
+                        await Task.Run(() => Fastboot.Instance().Execute(string.Format("update {0}", imagePath)));
+                    }
                 }
             }
             else
             {
-                cAppend("Skipping vendor...");
-            }
+                controllerFactoryflash.SetTitle("Extracting images...");
+                controllerFactoryflash.SetMessage("Progress 2.5/8");
 
-            cAppend("Flashing complete!\n");
-            cAppend("Done! Check the output and make sure the following have been flashed sucessfully.\n\nBootloader, Radio, Cache, System, Vendor.\n");
-
-            cAppend("You can reboot once you're happy with the flashing process.\n");
-
-            var result = await this.ShowMessageAsync("Flash Successful!", "Would you like to reboot now?", MessageDialogStyle.AffirmativeAndNegative, mySettings);
-            if (result == MessageDialogResult.Affirmative)
-            {
-                await Task.Run(() => Fastboot.Instance().Reboot(IDBoot.REBOOT));
-            }
-
-            var resultCleanup = await this.ShowMessageAsync("Flash Successful!", "Would you like to clean up (delete) the extracted files?", MessageDialogStyle.AffirmativeAndNegative, mySettings);
-            if (resultCleanup == MessageDialogResult.Affirmative)
-            {
-                try
+                string[] fImage = System.IO.Directory.GetFiles(rStockFolder, "*image*", System.IO.SearchOption.TopDirectoryOnly);
+                if (fImage.Length > 0)
                 {
-                    Directory.Delete("./Data/Downloads/Stock/.extracted/", true);
+                    cAppend("Extracting images...");
+                    imagePath = fImage[0].ToString();
+                    await Task.Run(() => FastZipUnpack(imagePath, rStockFolder));
                 }
-                catch (Exception ex)
+
+                if (flashBoot == true)
                 {
-                    await this.ShowMessageAsync("Unable to delete extracted files", ex.ToString(), MessageDialogStyle.Affirmative, mySettings);
+                    controllerFactoryflash.SetTitle("Flashing boot...");
+                    controllerFactoryflash.SetMessage("Progress 3/8");
+
+                    cAppend("Flashing boot...");
+                    string[] fBoot = System.IO.Directory.GetFiles(rStockFolder, "*boot*", System.IO.SearchOption.TopDirectoryOnly);
+                    if (fBoot.Length > 0)
+                    {
+                        bootPath = fBoot[0].ToString();
+                        await Task.Run(() => Fastboot.Instance().Flash(IDDevicePartition.BOOT, bootPath));
+                    }
+                }
+                else
+                {
+                    controllerFactoryflash.SetTitle("Skipping boot...");
+                    controllerFactoryflash.SetMessage("Progress 3/8");
+                    cAppend("Skipping boot image...");
+                }
+
+                controllerFactoryflash.SetTitle("Flashing cache...");
+                controllerFactoryflash.SetMessage("Progress 4/8");
+
+                if (flashCache == true)
+                {
+                    string[] fCache = Directory.GetFiles(rStockFolder, "*cache*", SearchOption.TopDirectoryOnly);
+                    if (fCache.Length > 0)
+                    {
+                        cAppend("Flashing cache...");
+                        cachePath = fCache[0].ToString();
+                        await Task.Run(() => Fastboot.Instance().Flash(IDDevicePartition.CACHE, cachePath));
+                    }
+                }
+                else
+                {
+                    controllerFactoryflash.SetTitle("Skipping cache image...");
+                    cAppend("Skipping cache image...");
+                }
+
+                if (flashRecovery == true)
+                {
+                    controllerFactoryflash.SetTitle("Flashing recovery...");
+                    controllerFactoryflash.SetMessage("Progress 5/8");
+
+                    cAppend("Flashing recovery...");
+                    string[] fRecovery = System.IO.Directory.GetFiles(rStockFolder, "*recovery*", System.IO.SearchOption.TopDirectoryOnly);
+                    if (fRecovery.Length > 0)
+                    {
+                        recoveryPath = fRecovery[0].ToString();
+                        await Task.Run(() => Fastboot.Instance().Flash(IDDevicePartition.RECOVERY, recoveryPath));
+                    }
+                }
+                else
+                {
+                    controllerFactoryflash.SetTitle("Skipping recovery...");
+                    controllerFactoryflash.SetMessage("Progress 5/8");
+                    cAppend("Skipping recovery...");
+                }
+
+                if (flashSystem == true)
+                {
+                    string[] fSystem = System.IO.Directory.GetFiles(rStockFolder, "*system*", System.IO.SearchOption.TopDirectoryOnly);
+                    if (fSystem.Length > 0)
+                    {
+                        controllerFactoryflash.SetTitle("Flashing system...");
+                        controllerFactoryflash.SetMessage("Progress 6/8");
+
+                        cAppend("Flashing system...");
+                        systemPath = fSystem[0].ToString();
+                        await Task.Run(() => Fastboot.Instance().Flash(IDDevicePartition.SYSTEM, systemPath));
+                    }
+                }
+                else
+                {
+                    controllerFactoryflash.SetTitle("Skipping system image...");
+                    cAppend("Skipping system image...");
+                }
+
+                if (formatUserdata == true)
+                {
+                    controllerFactoryflash.SetTitle("Formatting userdata...");
+                    controllerFactoryflash.SetMessage("Progress 7/8");
+
+                    cAppend("Formatting userdata...");
+                    await Task.Run(() => Fastboot.Instance().Format(IDDevicePartition.USERDATA));
+                }
+                else
+                {
+                    controllerFactoryflash.SetTitle("Not formatting userdata...");
+                    controllerFactoryflash.SetMessage("Progress 7/8");
+                    cAppend("Skipping erasing userdata");
+                }
+
+                if (flashVendor == true)
+                {
+                    string[] fVendor = System.IO.Directory.GetFiles(rStockFolder, "*vendor*", System.IO.SearchOption.TopDirectoryOnly);
+                    if (fVendor.Length > 0)
+                    {
+                        cAppend("Flashing Vendor...");
+                        controllerFactoryflash.SetTitle("Flashing vendor...");
+                        controllerFactoryflash.SetMessage("Progress 8/8");
+
+                        vendorPath = fVendor[0].ToString();
+                        MessageBox.Show(fVendor[0].ToString());
+                        await Task.Run(() => Fastboot.Instance().Flash(IDDevicePartition.VENDOR, vendorPath));
+                    }
+                }
+                else
+                {
+                    cAppend("Skipping vendor...");
+                }
+
+                cAppend("Flashing complete!\n");
+                cAppend("Done! Check the output and make sure the following have been flashed sucessfully.\n\nBootloader, Radio, Cache, System, Vendor.\n");
+
+                cAppend("You can reboot once you're happy with the flashing process.\n");
+
+                var result = await this.ShowMessageAsync("Flash Successful!", "Would you like to reboot now?", MessageDialogStyle.AffirmativeAndNegative, mySettings);
+                if (result == MessageDialogResult.Affirmative)
+                {
+                    await Task.Run(() => Fastboot.Instance().Reboot(IDBoot.REBOOT));
+                }
+
+                var resultCleanup = await this.ShowMessageAsync("Flash Successful!", "Would you like to clean up (delete) the extracted files?", MessageDialogStyle.AffirmativeAndNegative, mySettings);
+                if (resultCleanup == MessageDialogResult.Affirmative)
+                {
+                    try
+                    {
+                        Directory.Delete("./Data/Downloads/Stock/.extracted/", true);
+                    }
+                    catch (Exception ex)
+                    {
+                        await this.ShowMessageAsync("Unable to delete extracted files", ex.ToString(), MessageDialogStyle.Affirmative, mySettings);
+                    }
                 }
             }
             await controllerFactoryflash.CloseAsync();
@@ -1047,6 +1164,21 @@ namespace Nexus_6P_Toolkit_2
             ADB.Stop();
             Fastboot.Dispose();
             ADB.Dispose();
+
+            //Save settings
+            if (rbProviderBasketBuild.IsChecked == true)
+            {
+                Squabbi.Toolkit.Nexus6P.Properties.Settings.Default["downloadProvider"] = "BasketBuild";
+            }
+            else if (rbProviderGitHub.IsChecked == true)
+            {
+                Squabbi.Toolkit.Nexus6P.Properties.Settings.Default["downloadProvider"] = "GitHub";
+            }
+            else
+            {
+                Squabbi.Toolkit.Nexus6P.Properties.Settings.Default["downloadProvider"] = "BasketBuild";
+            }
+            Squabbi.Toolkit.Nexus6P.Properties.Settings.Default.Save();
         }
 
         private async void adbVersion_Click(object sender, RoutedEventArgs e)
@@ -2105,8 +2237,9 @@ namespace Nexus_6P_Toolkit_2
                 stockUniqueID = stockListStrLineElements[6];
                 supSHA = stockListStrLineElements[7];
                 isStockDev = stockListStrLineElements[8];
+                //stockExtension = stockListStrLineElements[9];
 
-                pStockFileName = string.Format("{0}-{1}-{2}-{3}.tgz", codeDeviceName ,stockVersion, stockEdition, stockUniqueID);
+                pStockFileName = string.Format("{0}-{1}-{2}-{3}.zip", codeDeviceName, stockVersion, stockEdition, stockUniqueID/*, stockExtension*/);
 
                 if (_stockClient != null && _stockClient.IsBusy == true)
                 {
@@ -2149,22 +2282,7 @@ namespace Nexus_6P_Toolkit_2
                         //Set ez mode options
                         flashBootloader = true;
                         flashRadio = true;
-                        flashCache = true;
-                        flashSystem = true;
-                        flashVendor = true;
-                        //Set other options
-                        if (cbKeepTWRP.IsChecked == true)
-                            flashRecovery = false;
-                        else
-                            flashRecovery = true;
-                        if (cbFormatUserdataEZ.IsChecked == true)
-                            formatUserdata = true;
-                        else
-                            formatUserdata = false;
-                        if (cbKeepBoot.IsChecked == true)
-                            flashBoot = false;
-                        else
-                            flashBoot = true;
+                        flashFormatUserdata = true;
                     }
                     else
                     {
@@ -2223,6 +2341,13 @@ namespace Nexus_6P_Toolkit_2
 
                         //Declare new webclient
                         _stockClient = new WebClient();
+                        //Ask for proxy
+                        IWebProxy defaultProxy = WebRequest.DefaultWebProxy;
+                        if (defaultProxy != null)
+                        {
+                            defaultProxy.Credentials = CredentialCache.DefaultCredentials;
+                            _stockClient.Proxy = defaultProxy;
+                        }
                         //Subscribe to download and completed event handlers
                         _stockClient.DownloadProgressChanged += new DownloadProgressChangedEventHandler(client_DownloadProgressChanged);
                         _stockClient.DownloadFileCompleted += new AsyncCompletedEventHandler(stockClient_DownloadFileCompleted);
@@ -2413,19 +2538,6 @@ namespace Nexus_6P_Toolkit_2
             }
         }
 
-        private void extractTGZ(string stockFile, string extractDir)
-        {
-            Stream inStream = File.OpenRead(stockFile);
-            Stream gzipStream = new GZipInputStream(inStream);
-
-            TarArchive tarArchive = TarArchive.CreateInputTarArchive(gzipStream);
-            tarArchive.ExtractContents(extractDir);
-            tarArchive.Close();
-
-            gzipStream.Close();
-            inStream.Close();
-        }
-
         public void FastZipUnpack(string zipFileName, string targetDir)
         {
 
@@ -2496,6 +2608,13 @@ namespace Nexus_6P_Toolkit_2
                     cAppend("You can cancel the download by double clicking the progress bar at any time!\n");
                     //Declare new webclient
                     _driverClient = new WebClient();
+                    //Proxy for webClient
+                    IWebProxy defaultProxy = WebRequest.DefaultWebProxy;
+                    if (defaultProxy != null)
+                    {
+                        defaultProxy.Credentials = CredentialCache.DefaultCredentials;
+                        _driverClient.Proxy = defaultProxy;
+                    }
                     //Subscribe to download and completed event handlers
                     _driverClient.DownloadProgressChanged += new DownloadProgressChangedEventHandler(client_DownloadProgressChanged);
                     _driverClient.DownloadFileCompleted += new AsyncCompletedEventHandler(driverClient_DownloadFileCompleted);
@@ -2759,7 +2878,7 @@ namespace Nexus_6P_Toolkit_2
                     TextRange range;
                     FileStream fStream;
                     range = new TextRange(console.Document.ContentStart, console.Document.ContentEnd);
-                    fStream = new FileStream(dlg.FileName, FileMode.Create);
+                    fStream = new FileStream(dlg.FileName, System.IO.FileMode.Create);
                     range.Save(fStream, DataFormats.Text);
                     fStream.Close();
                 }
@@ -2938,6 +3057,13 @@ namespace Nexus_6P_Toolkit_2
                         cAppend("You can cancel the download by double clicking the progress bar at any time!\n");
                         //Declare new webclient
                         _otaClient = new WebClient();
+                        //Proxy settings for WebClient
+                        IWebProxy defaultProxy = WebRequest.DefaultWebProxy;
+                        if (defaultProxy != null)
+                        {
+                            defaultProxy.Credentials = CredentialCache.DefaultCredentials;
+                            _otaClient.Proxy = defaultProxy;
+                        }
                         //Subscribe to download and completed event handlers
                         _otaClient.DownloadProgressChanged += new DownloadProgressChangedEventHandler(client_DownloadProgressChanged);
                         _otaClient.DownloadFileCompleted += new AsyncCompletedEventHandler(otaClient_DownloadFileCompleted);
@@ -2953,7 +3079,7 @@ namespace Nexus_6P_Toolkit_2
                         else
                         {
                             MessageBox.Show("You're not supposed to get here! Please tell me on XDA: FOTA NOT DETECT, thanks!\n\nThe app will now exit.");
-                            Application.Current.Shutdown();
+                            System.Windows.Application.Current.Shutdown();
                         }
                     }
                     else
@@ -3014,7 +3140,7 @@ namespace Nexus_6P_Toolkit_2
                             else
                             {
                                 MessageBox.Show("You're not supposed to get here! Please tell me on XDA: FOTA NOT DETECT, thanks!\n\nThe app will now exit.");
-                                Application.Current.Shutdown();
+                                System.Windows.Application.Current.Shutdown();
                             }
                         }
                         else if (checkOTAHash == false)
@@ -3147,7 +3273,7 @@ namespace Nexus_6P_Toolkit_2
                 else
                 {
                     MessageBox.Show("You're not supposed to get here! Please tell me on XDA: FOTA NOT DETECT, thanks!\n\nThe app will now exit.");
-                    Application.Current.Shutdown();
+                    System.Windows.Application.Current.Shutdown();
                 }
                 statusProgress.IsIndeterminate = false;
             }
@@ -3183,7 +3309,7 @@ namespace Nexus_6P_Toolkit_2
             {
                 cAppend("No modified boot image selected...");
                 await this.ShowMessageAsync("No modified boot image selected", "Please select a modified boot image and try again.", MessageDialogStyle.Affirmative, noImageSettings);
-                twrpBuildList.IsDropDownOpen = true;
+                modBootBuildList.IsDropDownOpen = true;
             }
             if (modBootBuildList.SelectedIndex == 0)
             {
@@ -3276,6 +3402,13 @@ namespace Nexus_6P_Toolkit_2
                         cAppend("You can cancel the download by double clicking the progress bar at any time!\n");
                         //Declare new webclient
                         _modBootClient = new WebClient();
+                        //Proxy for WebClient
+                        IWebProxy defaultProxy = WebRequest.DefaultWebProxy;
+                        if (defaultProxy != null)
+                        {
+                            defaultProxy.Credentials = CredentialCache.DefaultCredentials;
+                            _modBootClient.Proxy = defaultProxy;
+                        }
                         //Subscribe to download and completed event handlers
                         _modBootClient.DownloadProgressChanged += new DownloadProgressChangedEventHandler(client_DownloadProgressChanged);
                         _modBootClient.DownloadFileCompleted += new AsyncCompletedEventHandler(modBootClient_DownloadFileCompleted);
@@ -3452,7 +3585,7 @@ namespace Nexus_6P_Toolkit_2
 
         private void showProxySettings_Click(object sender, RoutedEventArgs e)
         {
-            
+                        
         }
     }
 }
