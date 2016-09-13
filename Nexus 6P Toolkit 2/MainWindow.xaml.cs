@@ -36,10 +36,7 @@ namespace Nexus_6P_Toolkit_2
                 MessageBox.Show(
                     "There seems to be another instance of the toolkit running. Please make sure it is not running in the background.",
                     "Another Instance is running", MessageBoxButton.OK, MessageBoxImage.Error);
-                Close();
-
-                
-                
+                Close();             
             }
 
             InitializeComponent();
