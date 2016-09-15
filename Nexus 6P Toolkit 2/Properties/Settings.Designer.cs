@@ -22,17 +22,5 @@ namespace Squabbi.Toolkit.Nexus6P.Properties {
                 return defaultInstance;
             }
         }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("BasketBuild")]
-        public string downloadProvider {
-            get {
-                return ((string)(this["downloadProvider"]));
-            }
-            set {
-                this["downloadProvider"] = value;
-            }
-        }
     }
 }

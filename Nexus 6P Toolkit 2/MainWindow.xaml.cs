@@ -46,7 +46,6 @@ namespace Nexus_6P_Toolkit_2
         private string codeDeviceName = "angler";
         //Download int
         private int retryLvl = 0;
-        private string downloadProvider;
         //Factory image options
         private string stockVersion;
         private string stockEdition;
@@ -75,7 +74,6 @@ namespace Nexus_6P_Toolkit_2
         private bool flashRecovery;
         private bool flashSystem;
         private bool flashVendor;
-        private bool flashFormatUserdata;
         //TWRP options
         private string twrpVersion;
         private string pTWRPMD5;
@@ -117,12 +115,6 @@ namespace Nexus_6P_Toolkit_2
         List<String> suListStrLineElements;
         List<String> otaListStrLineElements;
         List<String> modBootListStrLineElements;
-        //String lists for dropdown menus
-        private string[] stockSelectionValues;
-        private string[] twrpSelectionValues;
-        private string[] suSelectionValues;
-        private string[] otaSelectionValues;
-        private string[] modBootSelectionValues;
         //App driectory
         public static string appPath = System.AppDomain.CurrentDomain.BaseDirectory;
 
@@ -140,19 +132,10 @@ namespace Nexus_6P_Toolkit_2
             this.Title = string.Format("Squabbi's Nexus 6P Toolkit - v{0}", version);
             cAppend("Set version.");
 
+
             startupProcesses();
 
-            //Check for provider settings
-            if (Squabbi.Toolkit.Nexus6P.Properties.Settings.Default["downloadProvider"].ToString() == "BasketBuild")
-            {
-                rbProviderBasketBuild.IsChecked = true;
-                downloadProvider = "BasketBuild";
-            }
-            else
-            {
-                rbProviderGitHub.IsChecked = true;
-                downloadProvider = "GitHub";
-            }
+            
 
             ////Check for updates
             if (!File.Exists("./debug"))
@@ -166,26 +149,36 @@ namespace Nexus_6P_Toolkit_2
                 cAppend("debug file detected. Skipping update.\n");
         }
 
-        public void startupProcesses()
+        public async void startupProcesses()
         {
-
-            //Checks and Creates folders
-            cAppend("Checking folder structure.");
-            CheckFileSystem();
-            //Download Stock list and add entries to combobox
-            if (!File.Exists("./debug"))
+            try
             {
-                cAppend("Downloading file lists.");
-                downloadCachedFiles();
+                await Task.Run(() =>
+                {
+                    //Checks and Creates folders
+                    cAppend("Checking folder structure.");
+                    CheckFileSystem();
+                    //Download Stock list and add entries to combobox
+                    if (!File.Exists("./debug"))
+                    {
+                        cAppend("Downloading file lists.");
+                        downloadCachedFiles();
+                    }
+                    else
+                        cAppend("debug file detected. Skipping file list download...");
+                    cAppend("Populating lists...");
+                    getBuildLists();
+                    cAppend("Deploying ADB & Fastboot.");
+                    CheckandDeploy();
+                    cAppend("Starting detection service.");
+                    DeviceDetectionService();
+                });
             }
-            else
-                cAppend("debug file detected. Skipping file list download...");
-            cAppend("Populating lists...");
-            getBuildLists();
-            cAppend("Deploying ADB & Fastboot.");
-            CheckandDeploy();
-            cAppend("Starting detection service.");
-            DeviceDetectionService();
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+            
 
         }
 
@@ -215,10 +208,25 @@ namespace Nexus_6P_Toolkit_2
             }
         }
 
-        public async void downloadCachedFiles()
+        public void downloadCachedFiles()
         {
             try
             {
+                string update_url = "https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/listVersion.ctl";
+
+                using (var listVersionWEBCLIENT = new WebClient())
+                {
+                    listVersionWEBCLIENT.Headers[HttpRequestHeader.UserAgent] = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.2 (KHTML, like Gecko) Chrome/15.0.874.121 Safari/535.2";
+                    string onlineVersionString = listVersionWEBCLIENT.DownloadString(update_url);
+
+                    string[] onlineVersionStringARRAY = onlineVersionString.Split(',');
+
+                    MessageBox.Show(onlineVersionString);
+                    MessageBox.Show("security: " + onlineVersionStringARRAY[0]);
+                    MessageBox.Show("version: " + onlineVersionStringARRAY[1]);
+                    //string currentVersion 
+                }
+
                 using (WebClient client = new WebClient())
                 {
                     //Proxy for WebClient
@@ -229,46 +237,25 @@ namespace Nexus_6P_Toolkit_2
                         client.Proxy = defaultProxy;
                     }
 
-                    if (downloadProvider == "BasketBuild")
-                    {
-                        cAppend("Downloading list from BasketBuild");
+                    cAppend("Downloading list from BasketBuild");
 
-                        client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/StockBuildList.ini"
-                        , "./Data/.cached/StockBuildList.ini");
-                        client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/TWRPBuildList.ini"
-                            , "./Data/.cached/TWRPBuildList.ini");
-                        client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/superSU/SuBuildList.ini"
-                            , "./Data/.cached/SuBuildList.ini");
-                        client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/OTABuildList.ini"
-                            , "./Data/.cached/OTABuildList.ini");
-                        client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/ModBootBuildList.ini"
-                            , "./Data/.cached/ModBootBuildList.ini");
-                        client.Dispose();
-                    }
-                    else
-                    {
-                        cAppend("Downloading lists from GitHub");
-                        client.DownloadFile("https://raw.githubusercontent.com/squabbi/Nexus6PToolkit2/master/Lists/StockBuildList.ini?token=ABzkxGU8PWotr5XPMXAZ8xRjPevjCS5Bks5X4LeHwA%3D%3D"
-                        , "./Data/.cached/StockBuildList.ini");
-                        client.DownloadFile("https://raw.githubusercontent.com/squabbi/Nexus6PToolkit2/master/Lists/TWRPBuildList.ini?token=ABzkxGU8PWotr5XPMXAZ8xRjPevjCS5Bks5X4LeHwA%3D%3D"
-
-                            , "./Data/.cached/TWRPBuildList.ini");
-                        client.DownloadFile("https://raw.githubusercontent.com/squabbi/Nexus6PToolkit2/master/Lists/SuBuildList.ini?token=ABzkxGU8PWotr5XPMXAZ8xRjPevjCS5Bks5X4LeHwA%3D%3D"
-
-                            , "./Data/.cached/SuBuildList.ini");
-                        client.DownloadFile("https://raw.githubusercontent.com/squabbi/Nexus6PToolkit2/master/Lists/OTABootBuildList.ini?token=ABzkxGU8PWotr5XPMXAZ8xRjPevjCS5Bks5X4LeHwA%3D%3D"
-
-                            , "./Data/.cached/OTABuildList.ini");
-                        client.DownloadFile("https://raw.githubusercontent.com/squabbi/Nexus6PToolkit2/master/Lists/ModBootBuildList.ini?token=ABzkxGU8PWotr5XPMXAZ8xRjPevjCS5Bks5X4LeHwA%3D%3D"
-                            , "./Data/.cached/ModBootBuildList.ini");
-                        client.Dispose();
-                    }                 
+                    client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/StockBuildList.ini"
+                    , "./Data/.cached/StockBuildList.ini");
+                    client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/TWRPBuildList.ini"
+                        , "./Data/.cached/TWRPBuildList.ini");
+                    client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/superSU/SuBuildList.ini"
+                        , "./Data/.cached/SuBuildList.ini");
+                    client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/OTABuildList.ini"
+                        , "./Data/.cached/OTABuildList.ini");
+                    client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/ModBootBuildList.ini"
+                        , "./Data/.cached/ModBootBuildList.ini");
+                    client.Dispose();
                 }
             }
             catch
             {
-                await this.ShowMessageAsync("No Network", (string.Join("An active internet connection was not found! You will only be able to flash your own images and zips untill you restart the toolkit with an internet connection.",
-                    "If the problem persists, check your firewall to allow the toolkit as an exeption. Cached files will be used instead and may be out of date.")));
+            //    await this.ShowMessageAsync("No Network", (string.Join("An active internet connection was not found! You will only be able to flash your own images and zips untill you restart the toolkit with an internet connection.",
+            //        "If the problem persists, check your firewall to allow the toolkit as an exeption. Cached files will be used instead and may be out of date.")));
             }
         }
 
@@ -1164,21 +1151,6 @@ namespace Nexus_6P_Toolkit_2
             ADB.Stop();
             Fastboot.Dispose();
             ADB.Dispose();
-
-            //Save settings
-            if (rbProviderBasketBuild.IsChecked == true)
-            {
-                Squabbi.Toolkit.Nexus6P.Properties.Settings.Default["downloadProvider"] = "BasketBuild";
-            }
-            else if (rbProviderGitHub.IsChecked == true)
-            {
-                Squabbi.Toolkit.Nexus6P.Properties.Settings.Default["downloadProvider"] = "GitHub";
-            }
-            else
-            {
-                Squabbi.Toolkit.Nexus6P.Properties.Settings.Default["downloadProvider"] = "BasketBuild";
-            }
-            Squabbi.Toolkit.Nexus6P.Properties.Settings.Default.Save();
         }
 
         private async void adbVersion_Click(object sender, RoutedEventArgs e)
@@ -1524,6 +1496,7 @@ namespace Nexus_6P_Toolkit_2
             {
                 AffirmativeButtonText = "Yes",
                 NegativeButtonText = "Re-download",
+                FirstAuxiliaryButtonText = "No, stop process",
                 SuppressDefaultResources = true,
                 CustomResourceDictionary = dictionary
             };
@@ -1649,6 +1622,15 @@ namespace Nexus_6P_Toolkit_2
                         cAppend("You can cancel the download by double clicking the progress bar at any time!\n");
                         //Declare new webclient
                         _twrpClient = new WebClient();
+
+                        //Proxy for WebClient
+                        IWebProxy defaultProxy = WebRequest.DefaultWebProxy;
+                        if (defaultProxy != null)
+                        {
+                            defaultProxy.Credentials = CredentialCache.DefaultCredentials;
+                            _twrpClient.Proxy = defaultProxy;
+                        }
+
                         //Subscribe to download and completed event handlers
                         _twrpClient.DownloadProgressChanged += new DownloadProgressChangedEventHandler(client_DownloadProgressChanged);
                         _twrpClient.DownloadFileCompleted += new AsyncCompletedEventHandler(twrpClient_DownloadFileCompleted);
@@ -1693,13 +1675,13 @@ namespace Nexus_6P_Toolkit_2
                         else
                         {
                             var result = await this.ShowMessageAsync("MD5 Check Failed", "The MD5s are not the same! This means the file is corrupt and probably wasn't downloaded properly. Would you like to re-download (recommended)?",
-                                MessageDialogStyle.AffirmativeAndNegative, md5mismatchSettings);
+                                MessageDialogStyle.AffirmativeAndNegativeAndSingleAuxiliary, md5mismatchSettings);
                             if (result == MessageDialogResult.Negative)
                             {
                                 File.Delete(Path.Combine("./Data/Downloads/TWRP", pTWRPFileName));
                                 flashTWRP_Click(new object(), new RoutedEventArgs());
                             }
-                            else
+                            else if (result == MessageDialogResult.Affirmative)
                             {
                                 IDDeviceState state = General.CheckDeviceState(ADB.Instance().DeviceID);
                                 if (state == IDDeviceState.DEVICE || state == IDDeviceState.RECOVERY)
@@ -1721,6 +1703,10 @@ namespace Nexus_6P_Toolkit_2
                                 {
                                     cAppend("Your device is in the wrong state. Please put your device in the bootloader.\n");
                                 }
+                            }
+                            else
+                            {
+                                cAppend("Flashing TWRP cancelled. MD5 Failed.");
                             }
                         }
                         statusProgress.IsIndeterminate = false;
@@ -2058,6 +2044,15 @@ namespace Nexus_6P_Toolkit_2
                         cAppend("You can cancel the download by double clicking the progress bar at any time!\n");
                         //Declare new webclient
                         _suClient = new WebClient();
+
+                        //Proxy for WebClient
+                        IWebProxy defaultProxy = WebRequest.DefaultWebProxy;
+                        if (defaultProxy != null)
+                        {
+                            defaultProxy.Credentials = CredentialCache.DefaultCredentials;
+                            _suClient.Proxy = defaultProxy;
+                        }
+
                         //Subscribe to download and completed event handlers
                         _suClient.DownloadProgressChanged += new DownloadProgressChangedEventHandler(client_DownloadProgressChanged);
                         _suClient.DownloadFileCompleted += new AsyncCompletedEventHandler(suClient_DownloadFileCompleted);
@@ -2232,12 +2227,13 @@ namespace Nexus_6P_Toolkit_2
                 stockListStrLineElements = entryValue.Split(';').ToList();
 
                 //Set required variables from ini
-                stockVersion = stockListStrLineElements[5];
-                stockEdition = stockListStrLineElements[9];
-                stockUniqueID = stockListStrLineElements[6];
-                supSHA = stockListStrLineElements[7];
-                isStockDev = stockListStrLineElements[8];
-                //stockExtension = stockListStrLineElements[9];
+                //Example link: https://dl.google.com/dl/android/aosp/angler-nrd90u-factory-7c9b6a2b.zip
+
+                stockVersion = stockListStrLineElements[2];
+                stockEdition = stockListStrLineElements[6];
+                stockUniqueID = stockListStrLineElements[3];
+                supSHA = stockListStrLineElements[4];
+                isStockDev = stockListStrLineElements[5];
 
                 pStockFileName = string.Format("{0}-{1}-{2}-{3}.zip", codeDeviceName, stockVersion, stockEdition, stockUniqueID/*, stockExtension*/);
 
@@ -2282,7 +2278,7 @@ namespace Nexus_6P_Toolkit_2
                         //Set ez mode options
                         flashBootloader = true;
                         flashRadio = true;
-                        flashFormatUserdata = true;
+                        formatUserdata = true;
                     }
                     else
                     {
