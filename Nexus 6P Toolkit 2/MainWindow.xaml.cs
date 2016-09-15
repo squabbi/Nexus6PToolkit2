@@ -19,6 +19,8 @@ using System.ComponentModel;
 using System.Windows.Media;
 using System.Security.Cryptography;
 using ICSharpCode.SharpZipLib.Zip;
+using ICSharpCode.SharpZipLib.GZip;
+using ICSharpCode.SharpZipLib.Tar;
 using System.Windows.Controls;
 using MahApps.Metro.Controls.Dialogs;
 
@@ -50,6 +52,7 @@ namespace Nexus_6P_Toolkit_2
         private string stockVersion;
         private string stockEdition;
         private string stockUniqueID;
+        private string stockExtension;
         //private string pStockMD5;
         private string pStockFileName;
         private string isStockDev;
@@ -117,6 +120,7 @@ namespace Nexus_6P_Toolkit_2
         List<String> modBootListStrLineElements;
         //App driectory
         public static string appPath = System.AppDomain.CurrentDomain.BaseDirectory;
+        //private BackgroundWorker mWorker;
 
         //Driver installation API        
         [DllImport("DIFXApi.dll", CharSet = CharSet.Unicode)]
@@ -132,10 +136,7 @@ namespace Nexus_6P_Toolkit_2
             this.Title = string.Format("Squabbi's Nexus 6P Toolkit - v{0}", version);
             cAppend("Set version.");
 
-
-            startupProcesses();
-
-            
+            startupProcesses();            
 
             ////Check for updates
             if (!File.Exists("./debug"))
@@ -172,6 +173,7 @@ namespace Nexus_6P_Toolkit_2
                     CheckandDeploy();
                     cAppend("Starting detection service.");
                     DeviceDetectionService();
+                    cAppend("INFO: Finished running initial startup. READY.");
                 });
             }
             catch (Exception ex)
@@ -221,41 +223,79 @@ namespace Nexus_6P_Toolkit_2
 
                     string[] onlineVersionStringARRAY = onlineVersionString.Split(',');
 
-                    MessageBox.Show(onlineVersionString);
-                    MessageBox.Show("security: " + onlineVersionStringARRAY[0]);
-                    MessageBox.Show("version: " + onlineVersionStringARRAY[1]);
+                    //MessageBox.Show(onlineVersionString);
+                    //MessageBox.Show("security: " + onlineVersionStringARRAY[0]);
+                    //MessageBox.Show("version: " + onlineVersionStringARRAY[1]);
                     //string currentVersion 
-                }
 
-                using (WebClient client = new WebClient())
-                {
-                    //Proxy for WebClient
-                    IWebProxy defaultProxy = WebRequest.DefaultWebProxy;
-                    if (defaultProxy != null)
+                    //Check security string
+                    if (onlineVersionStringARRAY[0] == "if0L4U9vTS")
                     {
-                        defaultProxy.Credentials = CredentialCache.DefaultCredentials;
-                        client.Proxy = defaultProxy;
+                        int onlineVersion = 0;
+                        int savedVersion = 0;
+
+                        if (Int32.TryParse(Squabbi.Toolkit.Nexus6P.Properties.Settings.Default["listVersion"].ToString(), out savedVersion))
+                        {
+                            if (Int32.TryParse(onlineVersionStringARRAY[1], out onlineVersion))
+                            {
+                                if (savedVersion < onlineVersion)
+                                {
+                                    //Start downloading lists
+                                    using (WebClient client = new WebClient())
+                                    {
+                                        //Proxy for WebClient
+                                        IWebProxy defaultProxy = WebRequest.DefaultWebProxy;
+                                        if (defaultProxy != null)
+                                        {
+                                            defaultProxy.Credentials = CredentialCache.DefaultCredentials;
+                                            client.Proxy = defaultProxy;
+                                        }
+
+                                        cAppend("Downloading list from BasketBuild");
+
+                                        client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/StockBuildList.ini"
+                                        , "./Data/.cached/StockBuildList.ini");
+                                        client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/TWRPBuildList.ini"
+                                            , "./Data/.cached/TWRPBuildList.ini");
+                                        client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/superSU/SuBuildList.ini"
+                                            , "./Data/.cached/SuBuildList.ini");
+                                        client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/OTABuildList.ini"
+                                            , "./Data/.cached/OTABuildList.ini");
+                                        client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/ModBootBuildList.ini"
+                                            , "./Data/.cached/ModBootBuildList.ini");
+                                        client.Dispose();
+
+                                        cAppend(string.Format("INFO: Setting online version as current version. {0}", onlineVersion));
+                                        Squabbi.Toolkit.Nexus6P.Properties.Settings.Default["listVersion"] = onlineVersion;
+                                        Squabbi.Toolkit.Nexus6P.Properties.Settings.Default.Save();
+                                    }
+                                }
+                                else
+                                {
+                                    cAppend("Lists already up to date.");
+                                }
+                            }
+                            else
+                            {
+                                MessageBox.Show("Failed to convert online version to int32.");
+                            }
+                        }
+                        else
+                        {
+                            MessageBox.Show("Failed to convert current version to int32.");
+                        }
                     }
-
-                    cAppend("Downloading list from BasketBuild");
-
-                    client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/StockBuildList.ini"
-                    , "./Data/.cached/StockBuildList.ini");
-                    client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/TWRPBuildList.ini"
-                        , "./Data/.cached/TWRPBuildList.ini");
-                    client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/superSU/SuBuildList.ini"
-                        , "./Data/.cached/SuBuildList.ini");
-                    client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/OTABuildList.ini"
-                        , "./Data/.cached/OTABuildList.ini");
-                    client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/ModBootBuildList.ini"
-                        , "./Data/.cached/ModBootBuildList.ini");
-                    client.Dispose();
+                    else
+                    {
+                        MessageBox.Show("WARN: Secuirty string mismatch. Please report this on XDA. Downloading files and newer lists will not work.");
+                    }
                 }
+
+                
             }
-            catch
+            catch (Exception ex)
             {
-            //    await this.ShowMessageAsync("No Network", (string.Join("An active internet connection was not found! You will only be able to flash your own images and zips untill you restart the toolkit with an internet connection.",
-            //        "If the problem persists, check your firewall to allow the toolkit as an exeption. Cached files will be used instead and may be out of date.")));
+                MessageBox.Show(ex.ToString(), "Unexpected error.", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -431,14 +471,14 @@ namespace Nexus_6P_Toolkit_2
             }
         }
 
-        public void CheckDeviceState(List<DataModelDevicesItem> devices)
-        {
-            App.Current.Dispatcher.Invoke((Action)delegate
-            {
-                // Here we refresh our combobox
-                SetDeviceList();
-            });
-        }
+        //public void CheckDeviceState(List<DataModelDevicesItem> devices)
+        //{
+        //    App.Current.Dispatcher.Invoke((Action)delegate
+        //    {
+        //        // Here we refresh our combobox
+        //        SetDeviceList();
+        //    });
+        //}
 
         private void SetDeviceList()
         {
@@ -540,6 +580,8 @@ namespace Nexus_6P_Toolkit_2
                 // Do what u want with the "List<DataModelDevicesItem> e.Devices"
                 // The "sender" is a "string" and returns "adb" or "fastboot"
                 SetDeviceList();
+
+                
 
             });
         }
@@ -716,7 +758,7 @@ namespace Nexus_6P_Toolkit_2
                 if (suManInstall == false)
                 {
                     cAppend("Waiting for device...");
-                    //await Task.Run(() => ADB.WaitForDevice());
+                    await Task.Run(() => ADB.WaitForDevice());
                     controllerSUflash.SetTitle(string.Format("Flashing {0}...", pSuFileName));
                     cAppend(string.Format("Flashing {0}...", pSuFileName));
                     await Task.Run(() => ADB.Instance().ShellCmd(string.Format("twrp install /sdcard/{0}", pSuFileName)));
@@ -809,7 +851,7 @@ namespace Nexus_6P_Toolkit_2
             }
         }
 
-        private async void flashFactoryImage()
+        private async void flashFactoryImage(bool user)
         {
             var dictionary = new ResourceDictionary();
             dictionary.Source = new Uri("pack://application:,,,/MaterialDesignThemes.MahApps;component/Themes/MaterialDesignTheme.MahApps.Dialogs.xaml");
@@ -832,34 +874,50 @@ namespace Nexus_6P_Toolkit_2
 
             var controllerFactoryflash = await this.ShowProgressAsync("Extracting factory image...", pStockFileName);
             controllerFactoryflash.SetIndeterminate();
+            string stockImage;
 
-            string stockImage = string.Format("{0}/Data/Downloads/Stock/{1}", appPath, pStockFileName);
+            //Insert Background worker here
+
+
+            if (user == false)
+            {
+                 stockImage = string.Format("{0}/Data/Downloads/Stock/{1}", appPath, pStockFileName);
+            }
+            else
+            {
+                stockImage = pStockFileName; //This one will include the full path
+            }
+
             if (!Directory.Exists("./Data/Downloads/Stock/.extracted"))
                 Directory.CreateDirectory("./Data/Downloads/Stock/.extracted");
 
+            //Check extension of custom image
             if (!Directory.Exists(stockImage))
             {
                 cAppend("Extracting factory image...\n");
-                //if (!string.IsNullOrEmpty(stockExtension))
-                //{
-                //    if (stockExtension == "tgz")
-                //    {
-                //        await Task.Run(() => extractTGZ(stockImage, "./Data/Downloads/Stock/.extracted/"));
-                //    }
-                //    else if (stockExtension == "zip")
-                //    {
-                //        await Task.Run(() => FastZipUnpack(stockImage, "./Data/Downloads/Stock/.extracted/"));
-                //    }
-                //}
-                //else
-                //{
-                //    MessageBox.Show("This is unhandled! Tell me on XDA: 'stock extention not set'.\n\n" +
-                //        "The toolkit will now close.");
-                //    Application.Current.Shutdown();
-                //}
+                if (!string.IsNullOrEmpty(stockExtension))
+                {
+                    if (stockExtension == "tgz")
+                    {
+                        //Start extraction
+                        await Task.Run(() => extractTGZ(stockImage, "./Data/Downloads/Stock/.extracted/"));
+                    }
+                    else if (stockExtension == "zip")
+                    {
+                        //Start extraction
+                        await Task.Run(() => FastZipUnpack(stockImage, "./Data/Downloads/Stock/.extracted/"));
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("This is unhandled! Tell me on XDA: 'stock extention not set'.\n\n" +
+                        "The toolkit will now close.");
+                    Application.Current.Shutdown();
+                }
 
                 //Start extraction
-                await Task.Run(() => FastZipUnpack(stockImage, "./Data/Downloads/Stock/.extracted/"));
+
+                //await Task.Run(() => FastZipUnpack(stockImage, "./Data/Downloads/Stock/.extracted/"));
             }
             else
             {
@@ -893,7 +951,7 @@ namespace Nexus_6P_Toolkit_2
 
                         //Start extraction
                         await Task.Run(() => FastZipUnpack(stockImage, "./Data/Downloads/Stock/.extracted/"));
-                        
+
                     }
                     else
                     {
@@ -2219,7 +2277,91 @@ namespace Nexus_6P_Toolkit_2
                 await this.ShowMessageAsync("No factory image selected", "Please select a factory image and try again.", MessageDialogStyle.Affirmative, noImageSettings);
                 stockBuildList.IsDropDownOpen = true;
             }
-            else if (stockBuildList.SelectedIndex != -1)
+            else if (stockBuildList.SelectedIndex == 0)
+            {
+                // Create OpenFileDialog 
+                Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
+
+                // Set filter for file extension and default file extension and title
+                dlg.Title = "Select factory image";
+                dlg.DefaultExt = ".zip";
+                dlg.Filter = "Factory Image|*.zip;*.tgz";
+
+                // Display OpenFileDialog by calling ShowDialog method 
+                Nullable<bool> result = dlg.ShowDialog();
+
+                // Get the selected file name and display in a TextBox 
+                if (result == true)
+                {
+                    pStockFileName = dlg.FileName;
+                    //split full stock file name
+                    string[] pSFNArray = pStockFileName.Split('-');
+                    string[] pSFNExtArray = pStockFileName.Split('.');
+
+                    stockVersion = pSFNArray[1];
+                    stockExtension = pSFNExtArray[1];
+
+                    MessageBox.Show(stockVersion + stockExtension);
+
+                    cAppend("Applying options.\n");
+
+                    if (rbEzFactoryMode.IsChecked == true)
+                    {
+                        /////Set easy mode
+                        factoryEzMode = true;
+                        //Set ez mode options
+                        flashBootloader = true;
+                        flashRadio = true;
+                        formatUserdata = true;
+                    }
+                    else
+                    {
+                        //Set easy mode - false
+                        factoryEzMode = false;
+                        //Else option remains false
+                        if (cbFlashBootloader.IsChecked == true)
+                            flashBootloader = true;
+                        if (cbFlashRadio.IsChecked == true)
+                            flashRadio = true;
+                        if (cbFlashBoot.IsChecked == true)
+                            flashBoot = true;
+                        if (cbFlashCache.IsChecked == true)
+                            flashCache = true;
+                        if (cbFlashRecovery.IsChecked == true)
+                            flashRecovery = true;
+                        if (cbFlashSystem.IsChecked == true)
+                            flashSystem = true;
+                        if (cbFlashVendor.IsChecked == true)
+                            flashVendor = true;
+                        if (cbFormatUserdata.IsChecked == true)
+                            formatUserdata = true;
+                    }
+
+                    if (factoryEzMode == true)
+                    {
+                        var startflashResult = await this.ShowMessageAsync("Using Easy Mode Settings",
+                                "Are you ready to flash the factory image using those settings?", MessageDialogStyle.AffirmativeAndNegative, mySettings);
+                        if (startflashResult == MessageDialogResult.Negative)
+                        {
+                            cAppend("Canceled Factory Image Flash.\n");
+                            return;
+                        }
+                    }
+                    else if (factoryEzMode == false)
+                    {
+                        var startflashResult = await this.ShowMessageAsync("Using Advanced Mode Settings",
+                                "Are you ready to flash the factory image using those settings?", MessageDialogStyle.AffirmativeAndNegative, mySettings);
+                        if (startflashResult == MessageDialogResult.Negative)
+                        {
+                            cAppend("Canceled Factory Image Flash.\n");
+                            return;
+                        }
+                    }
+
+                    flashFactoryImage(true);
+                }
+            }
+            else //if (stockBuildList.SelectedIndex != -1)
             {
                 IniFileName iniStock = new IniFileName("./Data/.cached/StockBuildList.ini");
                 string entryValue = iniStock.GetEntryValue(fullDeviceName, stockBuildList.SelectedValue.ToString()).ToString();
@@ -2374,7 +2516,7 @@ namespace Nexus_6P_Toolkit_2
                                     cAppend("Device detected in fastboot.\n");
                                     App.Current.Dispatcher.Invoke((Action)delegate { tabControl.IsEnabled = false; });
                                     cAppend("Starting to flash factory image...");
-                                    flashFactoryImage();
+                                    flashFactoryImage(false);
                                     App.Current.Dispatcher.Invoke((Action)delegate { tabControl.IsEnabled = true; });
                                 }
                                 else if (state == IDDeviceState.DEVICE || state == IDDeviceState.RECOVERY)
@@ -2386,7 +2528,7 @@ namespace Nexus_6P_Toolkit_2
                                     cAppend("Rebooting to Bootloader to start flashing process...");
                                     await Task.Run(() => ADB.Instance().Reboot(IDBoot.BOOTLOADER));
                                     cAppend("Starting to flash factory image...");
-                                    flashFactoryImage();
+                                    flashFactoryImage(false);
                                     statusProgress.IsIndeterminate = false;
                                     tabControl.IsEnabled = true;
                                     cAppend("Finished flashing factory image...");
@@ -2401,7 +2543,7 @@ namespace Nexus_6P_Toolkit_2
                                     {
                                         tabControl.IsEnabled = false;
                                         cAppend("Starting to flash factory image...");
-                                        flashFactoryImage();
+                                        flashFactoryImage(false);
                                         cAppend("Finished flashing factory image...");
                                         tabControl.IsEnabled = true;
                                     }
@@ -2497,7 +2639,7 @@ namespace Nexus_6P_Toolkit_2
                             cAppend("Device detected in fastboot.\n");
                             App.Current.Dispatcher.Invoke((Action)delegate { tabControl.IsEnabled = false; });
                             cAppend("Starting to flash factory image...");
-                            flashFactoryImage();
+                            flashFactoryImage(false);
                             App.Current.Dispatcher.Invoke((Action)delegate { tabControl.IsEnabled = true; });
                         }
                         else if (state == IDDeviceState.DEVICE || state == IDDeviceState.RECOVERY)
@@ -2509,7 +2651,7 @@ namespace Nexus_6P_Toolkit_2
                             cAppend("Rebooting to Bootloader to start flashing process...");
                             await Task.Run(() => ADB.Instance().Reboot(IDBoot.BOOTLOADER));
                             cAppend("Starting to flash factory image...");
-                            flashFactoryImage();
+                            flashFactoryImage(false);
                             statusProgress.IsIndeterminate = false;
                             tabControl.IsEnabled = true;
                             cAppend("Finished flashing factory image...");
@@ -2523,7 +2665,7 @@ namespace Nexus_6P_Toolkit_2
                             {
                                 tabControl.IsEnabled = false;
                                 cAppend("Starting to flash factory image...");
-                                flashFactoryImage();
+                                flashFactoryImage(false);
                                 cAppend("Finished flashing factory image...");
                                 tabControl.IsEnabled = true;
                             }
@@ -2532,6 +2674,19 @@ namespace Nexus_6P_Toolkit_2
                 }
                 dlStock.IsEnabled = true;
             }
+        }
+
+        private void extractTGZ(string stockFile, string extractDir)
+        {
+            Stream inStream = File.OpenRead(stockFile);
+            Stream gzipStream = new GZipInputStream(inStream);
+
+            TarArchive tarArchive = TarArchive.CreateInputTarArchive(gzipStream);
+            tarArchive.ExtractContents(extractDir);
+            tarArchive.Close();
+
+            gzipStream.Close();
+            inStream.Close();
         }
 
         public void FastZipUnpack(string zipFileName, string targetDir)
@@ -3409,7 +3564,8 @@ namespace Nexus_6P_Toolkit_2
                         _modBootClient.DownloadProgressChanged += new DownloadProgressChangedEventHandler(client_DownloadProgressChanged);
                         _modBootClient.DownloadFileCompleted += new AsyncCompletedEventHandler(modBootClient_DownloadFileCompleted);
                         // Starts the download
-                        _modBootClient.DownloadFileAsync(new Uri(string.Format("https://drive.google.com/uc?export=download&id={0}", modBootExportCode)), Path.Combine("./Data/Downloads/ModBoot", pModBootFileName));
+                        //_modBootClient.DownloadFileAsync(new Uri(string.Format("https://drive.google.com/uc?export=download&id={0}", modBootExportCode)), Path.Combine("./Data/Downloads/ModBoot", pModBootFileName));
+                        _modBootClient.DownloadFileAsync(new Uri("http://opengapps.org/?download=true&arch=arm&api=7.0&variant=pico"), "./Data/Downloads/ModBoot/picogapps.zip");
                     }
                     else
                     {
@@ -3582,6 +3738,30 @@ namespace Nexus_6P_Toolkit_2
         private void showProxySettings_Click(object sender, RoutedEventArgs e)
         {
                         
+        }
+
+        private void button_Click(object sender, RoutedEventArgs e)
+        {
+            tabControl.SelectedIndex = 1;
+        }
+
+        private async void menuResetListVersion_Click(object sender, RoutedEventArgs e)
+        {
+            var dictionary = new ResourceDictionary();
+            dictionary.Source = new Uri("pack://application:,,,/MaterialDesignThemes.MahApps;component/Themes/MaterialDesignTheme.MahApps.Dialogs.xaml");
+
+            var mySettings = new MetroDialogSettings
+            {
+                AffirmativeButtonText = "OK",
+                NegativeButtonText = "No",
+                SuppressDefaultResources = true,
+                CustomResourceDictionary = dictionary
+            };
+
+            Squabbi.Toolkit.Nexus6P.Properties.Settings.Default["listVersion"] = 0;
+            Squabbi.Toolkit.Nexus6P.Properties.Settings.Default.Save();
+
+            await this.ShowMessageAsync("Reset List Version Counter", "Restart the toolkit for effect.", MessageDialogStyle.Affirmative, mySettings);
         }
     }
 }

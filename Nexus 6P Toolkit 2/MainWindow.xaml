@@ -111,7 +111,11 @@
                     </MenuItem>
                 </MenuItem>
             </MenuItem>
-            <MenuItem x:Name="menuAbout" Header="About" Click="menuAbout_Click" ToolTip="Shows information about the toolkit."/>
+            <MenuItem x:Name="menuHelp" Header="Help">
+                <MenuItem x:Name="menuAbout" Header="About" Click="menuAbout_Click" ToolTip="Shows information about the toolkit."/>
+                <MenuItem x:Name="menuResetListVersion" Header="Reset List Version Counter" ToolTip="Resets counter to 0 to download the latest version of the toolkit lists." Click="menuResetListVersion_Click"/>
+            </MenuItem>
+
         </Menu>
         <RichTextBox x:Name="console" IsReadOnly="True" ScrollViewer.VerticalScrollBarVisibility="Visible" Height="124" Margin="10,454,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="613">
             <RichTextBox.Resources>
@@ -126,26 +130,11 @@
             </FlowDocument>
         </RichTextBox>
         <ProgressBar x:Name="statusProgress" Margin="10,445,0,0" VerticalAlignment="Top" ValueChanged="statusProgress_ValueChanged" MouseDoubleClick="statusProgress_MouseDoubleClick" HorizontalAlignment="Left" Width="613"/>
-        <TabControl x:Name="tabControl" Controls:TabControlHelper.IsUnderlined="True" HorizontalAlignment="Left" Height="387" Margin="10,53,0,0" VerticalAlignment="Top" Width="613">
+        <TabControl x:Name="tabControl" Controls:TabControlHelper.IsUnderlined="True" HorizontalAlignment="Left" Height="387" Margin="10,53,0,0" VerticalAlignment="Top" Width="613" SelectedIndex="1">
             <TabItem Header="Root">
                 <Grid>
-                    <GroupBox x:Name="groupBox2_Copy" Header="2. Unlock the Bootloader" HorizontalAlignment="Left" Margin="262,10,0,0" VerticalAlignment="Top" Height="139" Width="294" IsEnabled="False">
-                        <Grid>
-                            <Button  x:Name="unlockBootloader1" Content="Unlock the Bootloader" HorizontalAlignment="Left" Margin="10,62,0,0" VerticalAlignment="Top" Width="262" Click="unlockBootloader_Click" ToolTip="This will erase everything in the internal storage."/>
-                            <TextBlock TextWrapping="WrapWithOverflow" Margin="10,10,0,0" Height="45" VerticalAlignment="Top" HorizontalAlignment="Left" Width="262"><Hyperlink Click="howEnableOEMUnlock_Click"><Run Text="Click here to find out how to enable OEM Unlock in the Developer Options,"/></Hyperlink><Run Text=" once that's done you're ready to "/><Run Text="unlock the bootloader."/></TextBlock>
-                        </Grid>
-                    </GroupBox>
-                    <GroupBox x:Name="groupBox6" Header="1. Install/Configure USB Drivers" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Height="139" Width="247" IsEnabled="False">
-                        <Grid Margin="0"/>
-                    </GroupBox>
-                    <GroupBox x:Name="groupBox11" Header="Select Provider" HorizontalAlignment="Left" Margin="10,154,0,0" VerticalAlignment="Top" Height="139" Width="247">
-                        <Grid Margin="0">
-                            <RadioButton x:Name="rbProviderBasketBuild" Content="BasketBuild" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" IsChecked="True"/>
-                            <RadioButton x:Name="rbProviderGitHub" Content="GitHub" HorizontalAlignment="Left" Margin="10,33,0,0" VerticalAlignment="Top" IsChecked="True"/>
-                            <TextBlock x:Name="textBlock4" HorizontalAlignment="Left" Margin="10,60,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Text="Changes will be saved upon exit."/>
-                        </Grid>
-                    </GroupBox>
-                    <TextBlock x:Name="textBlock3" HorizontalAlignment="Left" Margin="279,171,0,0" TextWrapping="Wrap" Text="Sorry for the mess here! Just working out on a new update, but in the meantime, I've changed the providers to GitHub. A new client update will be released when BasketBuild is online. :)" VerticalAlignment="Top" Height="68" Width="277"/>
+                    <Button x:Name="button" Content="Head over to the Unlocking and Rooting tab!" HorizontalAlignment="Left" Margin="10,46,0,0" VerticalAlignment="Top" Width="328" Click="button_Click"/>
+                    <TextBlock x:Name="textBlock3" HorizontalAlignment="Left" Margin="10,10,0,0" TextWrapping="Wrap" Text="Hey guys! Don't mind this area, I'm just working on a automated root process to put here. :)" VerticalAlignment="Top" Height="31" Width="278"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Unlocking &amp; Rooting">
@@ -162,7 +151,7 @@
                     <GroupBox x:Name="groupBox4" Header="2a. Flash TWRP" HorizontalAlignment="Left" Margin="10,154,0,0" VerticalAlignment="Top" Height="149" Width="294">
                         <Grid>
                             <Button x:Name="flashTWRPRec" Content="Flash TWRP" HorizontalAlignment="Left" Margin="10,70,0,0" VerticalAlignment="Top" Width="262" Click="flashTWRP_Click" ToolTip="Flashes TWRP to your phone."/>
-                            <ComboBox x:Name="twrpBuildList" HorizontalAlignment="Left" Margin="9,10,0,0" VerticalAlignment="Top" Width="263" ToolTip="Select the version of TWRP to flash.">
+                            <ComboBox x:Name="twrpBuildList" HorizontalAlignment="Left" Margin="9,10,0,0" VerticalAlignment="Top" Width="263" ToolTip="Select the version of TWRP to flash." SelectionChanged="twrpBuildList_SelectionChanged">
                                 <ComboBoxItem Content="ANGLER-ANGLER: CUSTOM RECOVERY..."/>
                             </ComboBox>
                         </Grid>
@@ -246,10 +235,12 @@
                             <CheckBox x:Name="cbFormatUserdataEZ" Content="Format Userdata (Erases everything on your phone)" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="300" ToolTip="Erases everything on the internal storage. You may need to do a factory reset if your device is in a bootloop after flashing."/>
                         </Grid>
                     </GroupBox>
-                    <GroupBox x:Name="groupBox7" Header="Select and Flash" HorizontalAlignment="Left" Margin="10,184,0,0" VerticalAlignment="Top" Height="109" Width="332">
+                    <GroupBox x:Name="groupBox7" Header="Select and Flash" HorizontalAlignment="Left" Margin="10,91,0,0" VerticalAlignment="Top" Height="202" Width="332">
                         <Grid>
-                            <ComboBox x:Name="stockBuildList" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="300" ToolTip="Select a stock image to restore."/>
-                            <Button x:Name="dlStock" Content="Flash Factory Image" HorizontalAlignment="Left" Margin="135,38,0,4" Width="175" Height="Auto" Click="dlStock_Click" ToolTip="This can be used to fully return to stock or upgrade to the latest factory image without losing root &amp; data."/>
+                            <ComboBox x:Name="stockBuildList" HorizontalAlignment="Left" Margin="10,7,0,0" VerticalAlignment="Top" Width="300" ToolTip="Select a stock image to restore." Height="30">
+                                <ComboBoxItem Content="Open Downloaded Factory Image"/>
+                            </ComboBox>
+                            <Button x:Name="dlStock" Content="Flash Factory Image" HorizontalAlignment="Left" Margin="135,126,0,0" Width="175" Height="32" Click="dlStock_Click" ToolTip="This can be used to fully return to stock or upgrade to the latest factory image without losing root &amp; data." VerticalAlignment="Top"/>
                         </Grid>
                     </GroupBox>
                     <GroupBox x:Name="groupbox2" Header="" HorizontalAlignment="Left" Margin="347,10,0,0" VerticalAlignment="Top" Height="283" Width="250">
@@ -266,8 +257,6 @@
                     </GroupBox>
                     <RadioButton x:Name="rbEzFactoryMode" Content="Basic Options" HorizontalAlignment="Left" Margin="20,14,0,0" VerticalAlignment="Top" Foreground="White" Background="White" FontWeight="Bold" IsChecked="True" Checked="rbEzFactoryMode_Checked"/>
                     <RadioButton x:Name="rbAdvFactoryMode" Content="Advanced Options" HorizontalAlignment="Left" Margin="356,14,0,0" VerticalAlignment="Top" Foreground="White" Background="White" FontWeight="Bold" Checked="rbAdvFactoryMode_Checked"/>
-                    <TextBlock x:Name="textBlock2" HorizontalAlignment="Left" Margin="10,91,0,0" TextWrapping="Wrap" Text="You may need to boot into recovery (stock) and complete a factory reset, if your device ends up in a bootloop after flashing stock." VerticalAlignment="Top" Height="51" Width="332"/>
-                    <Button x:Name="howToFactoryResetStock" Style="{StaticResource MaterialDesignFlatButton}" Content="How do I open the recovery menu?" HorizontalAlignment="Left" Margin="74,147,0,0" VerticalAlignment="Top" Width="268" Click="howToFactoryResetStock_Click"/>
                 </Grid>
             </TabItem>
         </TabControl>
