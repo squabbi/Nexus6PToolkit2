@@ -49,7 +49,7 @@
                 <Separator/>
                 <MenuItem x:Name="saveLog" Header="Save Log (Output)" Click="saveLog_Click"></MenuItem>
                 <Separator/>
-                <MenuItem x:Name="showProxySettings" Header="Proxy Settings" Click="showProxySettings_Click"/>
+                <MenuItem x:Name="showProxySettings" Header="Proxy Settings" Click="showProxySettings_Click" IsEnabled="False"/>
                 <MenuItem x:Name="linkExit" Header="Exit" Click="linkExit_Click">
                     <MenuItem.Icon>
                         <Image Source="Resources/exit_sign-32.png"/>
@@ -138,11 +138,11 @@
                     <GroupBox x:Name="groupBox6" Header="1. Install/Configure USB Drivers" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Height="139" Width="247" IsEnabled="False">
                         <Grid Margin="0"/>
                     </GroupBox>
-                    <GroupBox x:Name="groupBox11" Header="Select Provider" HorizontalAlignment="Left" Margin="10,154,0,0" VerticalAlignment="Top" Height="139" Width="247" IsEnabled="False">
+                    <GroupBox x:Name="groupBox11" Header="Select Provider" HorizontalAlignment="Left" Margin="10,154,0,0" VerticalAlignment="Top" Height="139" Width="247">
                         <Grid Margin="0">
                             <RadioButton x:Name="rbProviderBasketBuild" Content="BasketBuild" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" IsChecked="True"/>
                             <RadioButton x:Name="rbProviderGitHub" Content="GitHub" HorizontalAlignment="Left" Margin="10,33,0,0" VerticalAlignment="Top" IsChecked="True"/>
-                            <TextBlock x:Name="textBlock4" HorizontalAlignment="Left" Margin="10,60,0,0" TextWrapping="Wrap" VerticalAlignment="Top"><Run Text="Changes will be saved upon exit."/><Run Text=" Does not change provider of autoupdater."/></TextBlock>
+                            <TextBlock x:Name="textBlock4" HorizontalAlignment="Left" Margin="10,60,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Text="Changes will be saved upon exit."/>
                         </Grid>
                     </GroupBox>
                     <TextBlock x:Name="textBlock3" HorizontalAlignment="Left" Margin="279,171,0,0" TextWrapping="Wrap" Text="Sorry for the mess here! Just working out on a new update, but in the meantime, I've changed the providers to GitHub. A new client update will be released when BasketBuild is online. :)" VerticalAlignment="Top" Height="68" Width="277"/>
