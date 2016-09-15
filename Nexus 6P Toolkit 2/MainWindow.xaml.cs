@@ -132,10 +132,7 @@ namespace Nexus_6P_Toolkit_2
             this.Title = string.Format("Squabbi's Nexus 6P Toolkit - v{0}", version);
             cAppend("Set version.");
 
-
-            startupProcesses();
-
-            
+            startupProcesses();            
 
             ////Check for updates
             if (!File.Exists("./debug"))
@@ -172,6 +169,7 @@ namespace Nexus_6P_Toolkit_2
                     CheckandDeploy();
                     cAppend("Starting detection service.");
                     DeviceDetectionService();
+                    cAppend("INFO: Finished running initial startup. READY.");
                 });
             }
             catch (Exception ex)
@@ -221,41 +219,79 @@ namespace Nexus_6P_Toolkit_2
 
                     string[] onlineVersionStringARRAY = onlineVersionString.Split(',');
 
-                    MessageBox.Show(onlineVersionString);
-                    MessageBox.Show("security: " + onlineVersionStringARRAY[0]);
-                    MessageBox.Show("version: " + onlineVersionStringARRAY[1]);
+                    //MessageBox.Show(onlineVersionString);
+                    //MessageBox.Show("security: " + onlineVersionStringARRAY[0]);
+                    //MessageBox.Show("version: " + onlineVersionStringARRAY[1]);
                     //string currentVersion 
-                }
 
-                using (WebClient client = new WebClient())
-                {
-                    //Proxy for WebClient
-                    IWebProxy defaultProxy = WebRequest.DefaultWebProxy;
-                    if (defaultProxy != null)
+                    //Check security string
+                    if (onlineVersionStringARRAY[0] == "if0L4U9vTS")
                     {
-                        defaultProxy.Credentials = CredentialCache.DefaultCredentials;
-                        client.Proxy = defaultProxy;
+                        int onlineVersion = 0;
+                        int savedVersion = 0;
+
+                        if (Int32.TryParse(Squabbi.Toolkit.Nexus6P.Properties.Settings.Default["listVersion"].ToString(), out savedVersion))
+                        {
+                            if (Int32.TryParse(onlineVersionStringARRAY[1], out onlineVersion))
+                            {
+                                if (savedVersion < onlineVersion)
+                                {
+                                    //Start downloading lists
+                                    using (WebClient client = new WebClient())
+                                    {
+                                        //Proxy for WebClient
+                                        IWebProxy defaultProxy = WebRequest.DefaultWebProxy;
+                                        if (defaultProxy != null)
+                                        {
+                                            defaultProxy.Credentials = CredentialCache.DefaultCredentials;
+                                            client.Proxy = defaultProxy;
+                                        }
+
+                                        cAppend("Downloading list from BasketBuild");
+
+                                        client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/StockBuildList.ini"
+                                        , "./Data/.cached/StockBuildList.ini");
+                                        client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/TWRPBuildList.ini"
+                                            , "./Data/.cached/TWRPBuildList.ini");
+                                        client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/superSU/SuBuildList.ini"
+                                            , "./Data/.cached/SuBuildList.ini");
+                                        client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/OTABuildList.ini"
+                                            , "./Data/.cached/OTABuildList.ini");
+                                        client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/ModBootBuildList.ini"
+                                            , "./Data/.cached/ModBootBuildList.ini");
+                                        client.Dispose();
+
+                                        cAppend(string.Format("INFO: Setting online version as current version. {0}", onlineVersion));
+                                        Squabbi.Toolkit.Nexus6P.Properties.Settings.Default["listVersion"] = onlineVersion;
+                                        Squabbi.Toolkit.Nexus6P.Properties.Settings.Default.Save();
+                                    }
+                                }
+                                else
+                                {
+                                    cAppend("Lists already up to date.");
+                                }
+                            }
+                            else
+                            {
+                                MessageBox.Show("Failed to convert online version to int32.");
+                            }
+                        }
+                        else
+                        {
+                            MessageBox.Show("Failed to convert current version to int32.");
+                        }
                     }
-
-                    cAppend("Downloading list from BasketBuild");
-
-                    client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/StockBuildList.ini"
-                    , "./Data/.cached/StockBuildList.ini");
-                    client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/TWRPBuildList.ini"
-                        , "./Data/.cached/TWRPBuildList.ini");
-                    client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/superSU/SuBuildList.ini"
-                        , "./Data/.cached/SuBuildList.ini");
-                    client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/OTABuildList.ini"
-                        , "./Data/.cached/OTABuildList.ini");
-                    client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/ModBootBuildList.ini"
-                        , "./Data/.cached/ModBootBuildList.ini");
-                    client.Dispose();
+                    else
+                    {
+                        MessageBox.Show("WARN: Secuirty string mismatch. Please report this on XDA. Downloading files and newer lists will not work.");
+                    }
                 }
+
+                
             }
-            catch
+            catch (Exception ex)
             {
-            //    await this.ShowMessageAsync("No Network", (string.Join("An active internet connection was not found! You will only be able to flash your own images and zips untill you restart the toolkit with an internet connection.",
-            //        "If the problem persists, check your firewall to allow the toolkit as an exeption. Cached files will be used instead and may be out of date.")));
+                MessageBox.Show(ex.ToString(), "Unexpected error.", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -3582,6 +3618,30 @@ namespace Nexus_6P_Toolkit_2
         private void showProxySettings_Click(object sender, RoutedEventArgs e)
         {
                         
+        }
+
+        private void button_Click(object sender, RoutedEventArgs e)
+        {
+            tabControl.SelectedIndex = 1;
+        }
+
+        private async void menuResetListVersion_Click(object sender, RoutedEventArgs e)
+        {
+            var dictionary = new ResourceDictionary();
+            dictionary.Source = new Uri("pack://application:,,,/MaterialDesignThemes.MahApps;component/Themes/MaterialDesignTheme.MahApps.Dialogs.xaml");
+
+            var mySettings = new MetroDialogSettings
+            {
+                AffirmativeButtonText = "OK",
+                NegativeButtonText = "No",
+                SuppressDefaultResources = true,
+                CustomResourceDictionary = dictionary
+            };
+
+            Squabbi.Toolkit.Nexus6P.Properties.Settings.Default["listVersion"] = 0;
+            Squabbi.Toolkit.Nexus6P.Properties.Settings.Default.Save();
+
+            await this.ShowMessageAsync("Reset List Version Counter", "Restart the toolkit for effect.", MessageDialogStyle.Affirmative, mySettings);
         }
     }
 }

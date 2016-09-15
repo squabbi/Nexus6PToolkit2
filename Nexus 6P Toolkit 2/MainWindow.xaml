@@ -111,7 +111,11 @@
                     </MenuItem>
                 </MenuItem>
             </MenuItem>
-            <MenuItem x:Name="menuAbout" Header="About" Click="menuAbout_Click" ToolTip="Shows information about the toolkit."/>
+            <MenuItem x:Name="menuHelp" Header="Help">
+                <MenuItem x:Name="menuAbout" Header="About" Click="menuAbout_Click" ToolTip="Shows information about the toolkit."/>
+                <MenuItem x:Name="menuResetListVersion" Header="Reset List Version Counter" ToolTip="Resets counter to 0 to download the latest version of the toolkit lists." Click="menuResetListVersion_Click"/>
+            </MenuItem>
+            
         </Menu>
         <RichTextBox x:Name="console" IsReadOnly="True" ScrollViewer.VerticalScrollBarVisibility="Visible" Height="124" Margin="10,454,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="613">
             <RichTextBox.Resources>
@@ -126,26 +130,11 @@
             </FlowDocument>
         </RichTextBox>
         <ProgressBar x:Name="statusProgress" Margin="10,445,0,0" VerticalAlignment="Top" ValueChanged="statusProgress_ValueChanged" MouseDoubleClick="statusProgress_MouseDoubleClick" HorizontalAlignment="Left" Width="613"/>
-        <TabControl x:Name="tabControl" Controls:TabControlHelper.IsUnderlined="True" HorizontalAlignment="Left" Height="387" Margin="10,53,0,0" VerticalAlignment="Top" Width="613">
+        <TabControl x:Name="tabControl" Controls:TabControlHelper.IsUnderlined="True" HorizontalAlignment="Left" Height="387" Margin="10,53,0,0" VerticalAlignment="Top" Width="613" SelectedIndex="1">
             <TabItem Header="Root">
                 <Grid>
-                    <GroupBox x:Name="groupBox2_Copy" Header="2. Unlock the Bootloader" HorizontalAlignment="Left" Margin="262,10,0,0" VerticalAlignment="Top" Height="139" Width="294" IsEnabled="False">
-                        <Grid>
-                            <Button  x:Name="unlockBootloader1" Content="Unlock the Bootloader" HorizontalAlignment="Left" Margin="10,62,0,0" VerticalAlignment="Top" Width="262" Click="unlockBootloader_Click" ToolTip="This will erase everything in the internal storage."/>
-                            <TextBlock TextWrapping="WrapWithOverflow" Margin="10,10,0,0" Height="45" VerticalAlignment="Top" HorizontalAlignment="Left" Width="262"><Hyperlink Click="howEnableOEMUnlock_Click"><Run Text="Click here to find out how to enable OEM Unlock in the Developer Options,"/></Hyperlink><Run Text=" once that's done you're ready to "/><Run Text="unlock the bootloader."/></TextBlock>
-                        </Grid>
-                    </GroupBox>
-                    <GroupBox x:Name="groupBox6" Header="1. Install/Configure USB Drivers" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Height="139" Width="247" IsEnabled="False">
-                        <Grid Margin="0"/>
-                    </GroupBox>
-                    <GroupBox x:Name="groupBox11" Header="Select Provider" HorizontalAlignment="Left" Margin="10,154,0,0" VerticalAlignment="Top" Height="139" Width="247">
-                        <Grid Margin="0">
-                            <RadioButton x:Name="rbProviderBasketBuild" Content="BasketBuild" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" IsChecked="True"/>
-                            <RadioButton x:Name="rbProviderGitHub" Content="GitHub" HorizontalAlignment="Left" Margin="10,33,0,0" VerticalAlignment="Top" IsChecked="True"/>
-                            <TextBlock x:Name="textBlock4" HorizontalAlignment="Left" Margin="10,60,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Text="Changes will be saved upon exit."/>
-                        </Grid>
-                    </GroupBox>
-                    <TextBlock x:Name="textBlock3" HorizontalAlignment="Left" Margin="279,171,0,0" TextWrapping="Wrap" Text="Sorry for the mess here! Just working out on a new update, but in the meantime, I've changed the providers to GitHub. A new client update will be released when BasketBuild is online. :)" VerticalAlignment="Top" Height="68" Width="277"/>
+                    <Button x:Name="button" Content="Head over to the Unlocking and Rooting tab!" HorizontalAlignment="Left" Margin="10,46,0,0" VerticalAlignment="Top" Width="328" Click="button_Click"/>
+                    <TextBlock x:Name="textBlock3" HorizontalAlignment="Left" Margin="10,10,0,0" TextWrapping="Wrap" Text="Hey guys! Don't mind this area, I'm just working on a automated root process to put here. :)" VerticalAlignment="Top" Height="31" Width="278"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Unlocking &amp; Rooting">
