@@ -115,7 +115,7 @@
                 <MenuItem x:Name="menuAbout" Header="About" Click="menuAbout_Click" ToolTip="Shows information about the toolkit."/>
                 <MenuItem x:Name="menuResetListVersion" Header="Reset List Version Counter" ToolTip="Resets counter to 0 to download the latest version of the toolkit lists." Click="menuResetListVersion_Click"/>
             </MenuItem>
-            
+
         </Menu>
         <RichTextBox x:Name="console" IsReadOnly="True" ScrollViewer.VerticalScrollBarVisibility="Visible" Height="124" Margin="10,454,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="613">
             <RichTextBox.Resources>
@@ -235,10 +235,12 @@
                             <CheckBox x:Name="cbFormatUserdataEZ" Content="Format Userdata (Erases everything on your phone)" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="300" ToolTip="Erases everything on the internal storage. You may need to do a factory reset if your device is in a bootloop after flashing."/>
                         </Grid>
                     </GroupBox>
-                    <GroupBox x:Name="groupBox7" Header="Select and Flash" HorizontalAlignment="Left" Margin="10,184,0,0" VerticalAlignment="Top" Height="109" Width="332">
+                    <GroupBox x:Name="groupBox7" Header="Select and Flash" HorizontalAlignment="Left" Margin="10,91,0,0" VerticalAlignment="Top" Height="202" Width="332">
                         <Grid>
-                            <ComboBox x:Name="stockBuildList" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="300" ToolTip="Select a stock image to restore."/>
-                            <Button x:Name="dlStock" Content="Flash Factory Image" HorizontalAlignment="Left" Margin="135,38,0,4" Width="175" Height="Auto" Click="dlStock_Click" ToolTip="This can be used to fully return to stock or upgrade to the latest factory image without losing root &amp; data."/>
+                            <ComboBox x:Name="stockBuildList" HorizontalAlignment="Left" Margin="10,7,0,0" VerticalAlignment="Top" Width="300" ToolTip="Select a stock image to restore." Height="30">
+                                <ComboBoxItem Content="Open Downloaded Factory Image"/>
+                            </ComboBox>
+                            <Button x:Name="dlStock" Content="Flash Factory Image" HorizontalAlignment="Left" Margin="135,126,0,0" Width="175" Height="32" Click="dlStock_Click" ToolTip="This can be used to fully return to stock or upgrade to the latest factory image without losing root &amp; data." VerticalAlignment="Top"/>
                         </Grid>
                     </GroupBox>
                     <GroupBox x:Name="groupbox2" Header="" HorizontalAlignment="Left" Margin="347,10,0,0" VerticalAlignment="Top" Height="283" Width="250">
@@ -255,8 +257,6 @@
                     </GroupBox>
                     <RadioButton x:Name="rbEzFactoryMode" Content="Basic Options" HorizontalAlignment="Left" Margin="20,14,0,0" VerticalAlignment="Top" Foreground="White" Background="White" FontWeight="Bold" IsChecked="True" Checked="rbEzFactoryMode_Checked"/>
                     <RadioButton x:Name="rbAdvFactoryMode" Content="Advanced Options" HorizontalAlignment="Left" Margin="356,14,0,0" VerticalAlignment="Top" Foreground="White" Background="White" FontWeight="Bold" Checked="rbAdvFactoryMode_Checked"/>
-                    <TextBlock x:Name="textBlock2" HorizontalAlignment="Left" Margin="10,91,0,0" TextWrapping="Wrap" Text="You may need to boot into recovery (stock) and complete a factory reset, if your device ends up in a bootloop after flashing stock." VerticalAlignment="Top" Height="51" Width="332"/>
-                    <Button x:Name="howToFactoryResetStock" Style="{StaticResource MaterialDesignFlatButton}" Content="How do I open the recovery menu?" HorizontalAlignment="Left" Margin="74,147,0,0" VerticalAlignment="Top" Width="268" Click="howToFactoryResetStock_Click"/>
                 </Grid>
             </TabItem>
         </TabControl>
