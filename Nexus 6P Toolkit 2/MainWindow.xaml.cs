@@ -214,84 +214,85 @@ namespace Nexus_6P_Toolkit_2
         {
             try
             {
-                string update_url = "https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/listVersion.ctl";
+                //string update_url = "https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/listVersion.ctl";
 
-                using (var listVersionWEBCLIENT = new WebClient())
+                //using (var listVersionWEBCLIENT = new WebClient())
+                //{
+                //    listVersionWEBCLIENT.Headers[HttpRequestHeader.UserAgent] = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.2 (KHTML, like Gecko) Chrome/15.0.874.121 Safari/535.2";
+                //    string onlineVersionString = listVersionWEBCLIENT.DownloadString(update_url);
+
+                //    string[] onlineVersionStringARRAY = onlineVersionString.Split(',');
+
+                //    //MessageBox.Show(onlineVersionString);
+                //    //MessageBox.Show("security: " + onlineVersionStringARRAY[0]);
+                //    //MessageBox.Show("version: " + onlineVersionStringARRAY[1]);
+                //    //string currentVersion 
+
+                //    //Check security string
+                //    if (onlineVersionStringARRAY[0] == "if0L4U9vTS")
+                //    {
+                //int onlineVersion = 0;
+                //int savedVersion = 0;
+
+                //if (Int32.TryParse(Squabbi.Toolkit.Nexus6P.Properties.Settings.Default["listVersion"].ToString(), out savedVersion))
+                //{
+                //    if (Int32.TryParse(onlineVersionStringARRAY[1], out onlineVersion))
+                //    {
+                //        if (savedVersion < onlineVersion)
+                //        {
+                //            //Start downloading lists
+                using (WebClient client = new WebClient())
                 {
-                    listVersionWEBCLIENT.Headers[HttpRequestHeader.UserAgent] = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.2 (KHTML, like Gecko) Chrome/15.0.874.121 Safari/535.2";
-                    string onlineVersionString = listVersionWEBCLIENT.DownloadString(update_url);
-
-                    string[] onlineVersionStringARRAY = onlineVersionString.Split(',');
-
-                    //MessageBox.Show(onlineVersionString);
-                    //MessageBox.Show("security: " + onlineVersionStringARRAY[0]);
-                    //MessageBox.Show("version: " + onlineVersionStringARRAY[1]);
-                    //string currentVersion 
-
-                    //Check security string
-                    if (onlineVersionStringARRAY[0] == "if0L4U9vTS")
+                    //Proxy for WebClient
+                    IWebProxy defaultProxy = WebRequest.DefaultWebProxy;
+                    if (defaultProxy != null)
                     {
-                        int onlineVersion = 0;
-                        int savedVersion = 0;
-
-                        if (Int32.TryParse(Squabbi.Toolkit.Nexus6P.Properties.Settings.Default["listVersion"].ToString(), out savedVersion))
-                        {
-                            if (Int32.TryParse(onlineVersionStringARRAY[1], out onlineVersion))
-                            {
-                                if (savedVersion < onlineVersion)
-                                {
-                                    //Start downloading lists
-                                    using (WebClient client = new WebClient())
-                                    {
-                                        //Proxy for WebClient
-                                        IWebProxy defaultProxy = WebRequest.DefaultWebProxy;
-                                        if (defaultProxy != null)
-                                        {
-                                            defaultProxy.Credentials = CredentialCache.DefaultCredentials;
-                                            client.Proxy = defaultProxy;
-                                        }
-
-                                        cAppend("Downloading list from BasketBuild");
-
-                                        client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/StockBuildList.ini"
-                                        , "./Data/.cached/StockBuildList.ini");
-                                        client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/TWRPBuildList.ini"
-                                            , "./Data/.cached/TWRPBuildList.ini");
-                                        client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/superSU/SuBuildList.ini"
-                                            , "./Data/.cached/SuBuildList.ini");
-                                        client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/OTABuildList.ini"
-                                            , "./Data/.cached/OTABuildList.ini");
-                                        client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/ModBootBuildList.ini"
-                                            , "./Data/.cached/ModBootBuildList.ini");
-                                        client.Dispose();
-
-                                        cAppend(string.Format("INFO: Setting online version as current version. {0}", onlineVersion));
-                                        Squabbi.Toolkit.Nexus6P.Properties.Settings.Default["listVersion"] = onlineVersion;
-                                        Squabbi.Toolkit.Nexus6P.Properties.Settings.Default.Save();
-                                    }
-                                }
-                                else
-                                {
-                                    cAppend("Lists already up to date.");
-                                }
-                            }
-                            else
-                            {
-                                MessageBox.Show("Failed to convert online version to int32.");
-                            }
-                        }
-                        else
-                        {
-                            MessageBox.Show("Failed to convert current version to int32.");
-                        }
+                        defaultProxy.Credentials = CredentialCache.DefaultCredentials;
+                        client.Proxy = defaultProxy;
                     }
-                    else
-                    {
-                        MessageBox.Show("WARN: Secuirty string mismatch. Please report this on XDA. Downloading files and newer lists will not work.");
-                    }
+
+                    cAppend("Downloading list from BasketBuild");
+
+                    client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/StockBuildList.ini"
+                    , "./Data/.cached/StockBuildList.ini");
+                    client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/TWRPBuildList.ini"
+                        , "./Data/.cached/TWRPBuildList.ini");
+                    client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/superSU/SuBuildList.ini"
+                        , "./Data/.cached/SuBuildList.ini");
+                    client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/OTABuildList.ini"
+                        , "./Data/.cached/OTABuildList.ini");
+                    client.DownloadFile("https://s.basketbuild.com/dl/devs?dl=squabbi/toolkits/ModBootBuildList.ini"
+                        , "./Data/.cached/ModBootBuildList.ini");
+                    client.Dispose();
+
+                    //cAppend(string.Format("INFO: Setting online version as current version. {0}", onlineVersion));
+                    //Squabbi.Toolkit.Nexus6P.Properties.Settings.Default["listVersion"] = onlineVersion;
+                    //Squabbi.Toolkit.Nexus6P.Properties.Settings.Default.Save();
+                    //                }
+                    //            }
+                    //            else
+                    //            {
+                    //                cAppend("Lists already up to date.");
+                    //            }
+                    //        }
+                    //        else
+                    //        {
+                    //            MessageBox.Show("Failed to convert online version to int32.");
+                    //        }
+                    //    }
+                    //    else
+                    //    {
+                    //        MessageBox.Show("Failed to convert current version to int32.");
+                    //    }
+                    //}
+                    //    else
+                    //    {
+                    //        MessageBox.Show("WARN: Secuirty string mismatch. Please report this on XDA. Downloading files and newer lists will not work.");
+                    //    }
+                    //}
+
+
                 }
-
-                
             }
             catch (Exception ex)
             {
